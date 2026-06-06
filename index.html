@@ -314,7 +314,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 <!-- ══ AUTH ══════════════════════════════════════════════════════ -->
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="auth-logo">W<b>·</b>S — Workspace Personal</div>
+    <div class="auth-logo" id="auth-logo-secret" onclick="secretClick()" style="cursor:default;user-select:none">W<b>·</b>S — Workspace Personal</div>
 
     <!-- LOGIN -->
     <div id="auth-login-wrap">
@@ -1246,6 +1246,13 @@ function impData(e){
 // ADMIN
 // ══════════════════════════════════════════
 let lastCode='';
+let _sc=0,_st=null;
+function secretClick(){
+  _sc++;
+  clearTimeout(_st);
+  if(_sc>=5){_sc=0;document.getElementById('admin-screen').classList.add('open');loadUsers();return;}
+  _st=setTimeout(()=>{_sc=0;},3000);
+}
 function openAdminPrompt(){const k=prompt('Clave admin:');if(k===ADMIN_PWD){document.getElementById('admin-screen').classList.add('open');loadUsers();}else if(k)toast('Clave incorrecta');}
 function closeAdmin(){document.getElementById('admin-screen').classList.remove('open');}
 function genCode(){

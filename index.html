@@ -810,12 +810,16 @@ async function sha256(msg){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 let logoClicks=0,logoTimer=null;
-document.getElementById('auth-logo-click').addEventListener('click',()=>{
-  logoClicks++;
-  clearTimeout(logoTimer);
-  if(logoClicks>=3){logoClicks=0;openAdminPrompt();}
-  else logoTimer=setTimeout(()=>{logoClicks=0;},700);
-});
+function initLogoClick(){
+  const el=document.getElementById('auth-logo-click');
+  if(!el)return;
+  el.addEventListener('click',()=>{
+    logoClicks++;
+    clearTimeout(logoTimer);
+    if(logoClicks>=5){logoClicks=0;openAdminPrompt();}
+    else logoTimer=setTimeout(()=>{logoClicks=0;},800);
+  });
+}
 function openAdminPrompt(){
   if(document.getElementById('admin-modal-ov'))return;
   const ov=document.createElement('div');
@@ -1792,6 +1796,7 @@ CREATE POLICY "admin read all" ON ws_profiles FOR SELECT USING (true);`);
 // ??????????????????????????????????????????
 regPWA();
 checkSession();
+initLogoClick();
 </script>
 </body>
 </html>

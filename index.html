@@ -1392,7 +1392,7 @@ function expNota(fmt){
 // ??????????????????????????????????????????
 // BROWSER
 // ??????????????????????????????????????????
-function lBrowser(){let u=document.getElementById('burl').value.trim();if(!u)return;if(!u.startsWith('http'))u='https://'+u;document.getElementById('burl').value=u;document.getElementById('bframe').src=u;document.getElementById('bph').style.display='none';}
+function lBrowser(){let u=document.getElementById('burl').value.trim();if(!u)return;if(!u.startsWith('http')){if(u.includes('.')){u='https://'+u;}else{u='https://www.google.com/search?q='+encodeURIComponent(u);}}document.getElementById('burl').value=u;document.getElementById('bframe').src=u;document.getElementById('bph').style.display='none';}
 function eBrowser(){const u=document.getElementById('burl').value.trim();if(u)window.open(u,'_blank');}
 
 // ??????????????????????????????????????????
@@ -1612,6 +1612,18 @@ function showGeminiOnboarding(){
     }
   };
 }
+async function webSearch(query){
+  try{
+    const r=await fetch('https://google.serper.dev/search',{
+      method:'POST',
+      headers:{'X-API-KEY':'0ef3a1a73b0b688fbda0b8d8676a444e5e99a873','Content-Type':'application/json'},
+      body:JSON.stringify({q:query,gl:'uy',hl:'es',num:5})
+    });
+    const d=await r.json();
+    if(!d.organic)return 'Sin resultados.';
+    return d.organic.slice(0,4).map(x=>'- '+x.title+': '+x.snippet).join('\n');
+  }catch(e){return 'Error al buscar: '+e.message;}
+}
 async function sendIA(){
   const inp=document.getElementById('ia-inp');const text=inp.value.trim();if(!text)return;
   const apikey=S.cfg.apikey;
@@ -1622,7 +1634,16 @@ async function sendIA(){
   const typing=appendIATyping();
   try{
     const GROQ_KEY='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';
+    const SEARCH_KEYWORDS=['noticias','partido','juego','clima','tiempo','hoy','resultado','precio','dolar','euro','quien','que paso','cuando','donde'];
+    const needsSearch=SEARCH_KEYWORDS.some(k=>text.toLowerCase().includes(k));
+    let searchCtx='';
+    if(needsSearch){
+      const sres=await webSearch(text);
+      searchCtx='\n\n[Resultados de búsqueda web]:\n'+sres;
+    }
     const msgs=S.iaHist.slice(-12).filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,content:m.content}));
+    const lastMsg=msgs[msgs.length-1];
+    if(lastMsg&&lastMsg.role==='user')lastMsg.content+=searchCtx;
     const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},

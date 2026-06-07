@@ -1556,27 +1556,32 @@ Podés ejecutar varias acciones juntas: ACTION_JSON:[{accion1},{accion2}]
 Para consultas sin acción concreta (¿qué tengo hoy?, resúmenes, preguntas), respondé normalmente sin ACTION_JSON.
 Sé útil pero no generes acciones que el usuario no pidió.`;
 
-async function showGeminiOnboarding(){
+async function closeGeminiOb(){const el=document.getElementById('gemini-ob');if(el)el.remove();}
+function showGeminiOnboarding(){
   if(document.getElementById('gemini-ob'))return;
   const ov=document.createElement('div');
   ov.id='gemini-ob';
   ov.style.cssText='position:fixed;inset:0;background:#00000088;z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:380px;max-width:94vw;box-shadow:var(--shadow-lg)">'
-    +'<div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:8px">Activar Asistente IA</div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt3);line-height:1.7;margin-bottom:16px">Necesitás una API key de Google Gemini (gratis). Seguí estos pasos:</div>'
-    +'<div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:10px">'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">1.</b> Abrí <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a></div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">2.</b> Iniciá sesion con Google y hacé clic en <b>Create API key</b></div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">3.</b> Elegí <b>Default Gemini Project</b> y copiá la key</div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">4.</b> Pegala abajo</div>'
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:380px;max-width:94vw;box-shadow:var(--shadow-lg)';
+  box.innerHTML='<div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:8px">Activar Asistente IA</div>'
+    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt3);line-height:1.7;margin-bottom:16px">Necesitas una API key de Google Gemini (gratis):</div>'
+    +'<div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px">'
+    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">1.</b> Abre <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a></div>'
+    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">2.</b> Inicia sesion con Google y clic en <b>Create API key</b></div>'
+    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">3.</b> Elige <b>Default Gemini Project</b> y copia la key</div>'
+    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">4.</b> Pegala abajo y guarda</div>'
     +'</div>'
-    +'<input type="text" id="gemini-key-inp" placeholder="Pegá tu API key acá" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fm);font-size:13px;outline:none;margin-bottom:8px;box-sizing:border-box">'
-    +'<div id="gemini-err" style="font-family:var(--fm);font-size:11px;color:var(--red);display:none;margin-bottom:8px">Pegá la key antes de guardar</div>'
+    +'<input type="text" id="gemini-key-inp" placeholder="Pega tu API key aca" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fm);font-size:13px;outline:none;margin-bottom:8px;box-sizing:border-box">'
+    +'<div id="gemini-err" style="font-family:var(--fm);font-size:11px;color:var(--red);display:none;margin-bottom:8px">Pega la key antes de guardar</div>'
     +'<div style="display:flex;gap:8px;justify-content:flex-end">'
-    +'<button onclick="document.getElementById('gemini-ob').remove()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button>'
+    +'<button id="gemini-cancel" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button>'
     +'<button id="gemini-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:600;cursor:pointer">Guardar y usar</button>'
-    +'</div></div>';
+    +'</div>';
+  ov.appendChild(box);
   document.body.appendChild(ov);
+  document.getElementById('gemini-cancel').onclick=closeGeminiOb;
+  ov.addEventListener('click',e=>{if(e.target===ov)closeGeminiOb();});
   const inp=document.getElementById('gemini-key-inp');
   inp.focus();
   function saveKey(){
@@ -1586,13 +1591,12 @@ async function showGeminiOnboarding(){
     const cfgEl=document.getElementById('cfg-api');
     if(cfgEl)cfgEl.value=k;
     saveLocal();
-    ov.remove();
+    closeGeminiOb();
     toast('API key guardada');
     sendIA();
   }
   document.getElementById('gemini-ok').onclick=saveKey;
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveKey();});
-  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
 }
 async function sendIA(){
   const inp=document.getElementById('ia-inp');const text=inp.value.trim();if(!text)return;

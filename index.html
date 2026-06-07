@@ -486,7 +486,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
           <div class="wb" id="wbody"></div>
         </div>
         <div class="aview" id="view-month">
-          <div class="mnav"><button class="narr" onclick="mvMonth(-1)">?</button><div class="mttl" id="mttl"></div><button class="narr" onclick="mvMonth(1)">?</button></div>
+          <div class="mnav"><button class="narr" onclick="mvMonth(-1)">&#8249;</button><div class="mttl" id="mttl"></div><button class="narr" onclick="mvMonth(1)">&#8250;</button></div>
           <div class="mgrid" id="mgrid"></div>
         </div>
       </div>
@@ -615,7 +615,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
         <button class="badd" onclick="eBrowser()" style="background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">?</button>
       </div>
       <div style="flex:1;overflow:hidden;position:relative">
-        <iframe id="bframe" src="about:blank" style="width:100%;height:100%;border:none;background:#fff"></iframe>
+        <iframe id="bframe" src="about:blank" style="width:100%;height:100%;border:none;background:#fff" onload="if(this.src!=='about:blank')document.getElementById('bph-block').style.display='none'"></iframe>
+        <div id="bph-block" style="display:none;position:absolute;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none"><div style="font-family:var(--fh);font-size:14px;color:var(--txt2)">Este sitio no permite mostrarse en marcos</div><div style="font-family:var(--fm);font-size:12px;color:var(--txt3)">Usá el botón Abrir para verlo en una pestaña nueva</div></div>
         <div id="bph" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--txt3)">
           <div style="font-size:30px;opacity:.2">??</div>
           <div style="font-family:var(--fm);font-size:12px">Ingresá una URL arriba</div>
@@ -1128,6 +1129,7 @@ function renderWeek(){
     const hl=document.createElement('div');hl.className='whl';hl.textContent=h<10?'0'+h:h;row.appendChild(hl);
     days.forEach(day=>{
       const cell=document.createElement('div');cell.className='wc'+(isT(day)?' today':'');
+      const cellDate=new Date(day);const cellHora=(h<10?'0'+h:h)+':00';cell.onclick=e=>{if(e.target===cell){S.day=cellDate;openAddEvent(dk(cellDate),cellHora);}}
       evDay(day).filter(e=>parseInt(e.hora)===h).forEach(ev=>{
         const ch=document.createElement('div');ch.className='wchip';
         ch.style.cssText='background:'+CC(ev.cat[0],0)+';color:'+CC(ev.cat[0],2)+';border:1px solid '+CC(ev.cat[0],1);
@@ -1641,8 +1643,15 @@ async function sendIA(){
     S.iaHist=S.iaHist.slice(-20);
   }catch(e){
     typing.remove();
-    const errEl=appendIA('bot','Hubo un error al conectar con la API. Verificá tu API key.');
+    const msg=e.message||'';
+    let errMsg='Error al conectar con la IA.';
+    if(msg.includes('API_KEY')||msg.includes('key')||msg.includes('401'))errMsg='API key inválida. Revisá que la copiaste bien desde Google AI Studio.';
+    else if(msg.includes('quota')||msg.includes('429'))errMsg='Límite de uso alcanzado. Esperá un momento e intentá de nuevo.';
+    else if(msg.includes('network')||msg.includes('fetch'))errMsg='Sin conexión a internet.';
+    else if(msg)errMsg='Error: '+msg;
+    const errEl=appendIA('bot',errMsg);
     errEl.style.color='var(--red)';
+    console.error('Gemini error:',e);
   }
 }
 

@@ -615,9 +615,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
         <button class="badd" onclick="lBrowser()">Ir</button>
         <button class="badd" onclick="eBrowser()" style="background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">?</button>
       </div>
-      <div style="flex:1;overflow:hidden;position:relative">
-        <iframe id="bframe" src="about:blank" style="width:100%;height:100%;border:none;background:#fff" onload="if(this.src!=='about:blank')document.getElementById('bph-block').style.display='none'"></iframe>
-        <div id="bph-block" style="display:none;position:absolute;inset:0;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none"><div style="font-family:var(--fh);font-size:14px;color:var(--txt2)">Este sitio no permite mostrarse en marcos</div><div style="font-family:var(--fm);font-size:12px;color:var(--txt3)">Usá el botón Abrir para verlo en una pestaña nueva</div></div>
+      <div style="flex:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px">
+        <div style="font-size:40px">🌐</div>
+        <div style="font-family:var(--fh);font-size:15px;color:var(--txt2);font-weight:600">Navegador integrado</div>
+        <div style="font-family:var(--fm);font-size:12px;color:var(--txt3);text-align:center;max-width:280px;line-height:1.6">Escribí una URL o búsqueda arriba y hacé clic en <b>Ir</b>. Se abre como ventana flotante sobre la app.</div>
         <div id="bph" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--txt3)">
           <div style="font-size:30px;opacity:.2">??</div>
           <div style="font-family:var(--fm);font-size:12px">Ingresá una URL arriba</div>
@@ -1392,7 +1393,7 @@ function expNota(fmt){
 // ??????????????????????????????????????????
 // BROWSER
 // ??????????????????????????????????????????
-function lBrowser(){let u=document.getElementById('burl').value.trim();if(!u)return;if(!u.startsWith('http')){if(u.includes('.')){u='https://'+u;}else{u='https://duckduckgo.com/?q='+encodeURIComponent(u)+'&ia=web';}}document.getElementById('burl').value=u;document.getElementById('bframe').src=u;document.getElementById('bph').style.display='none';}
+function lBrowser(){let u=document.getElementById('burl').value.trim();if(!u)return;if(!u.startsWith('http')){if(u.includes('.')){u='https://'+u;}else{u='https://duckduckgo.com/?q='+encodeURIComponent(u)+'&ia=web';}}document.getElementById('burl').value=u;const pw=Math.min(1000,screen.width*0.85);const ph=Math.min(700,screen.height*0.85);const pl=(screen.width-pw)/2;const pt=(screen.height-ph)/2;window.open(u,'ws-browser','width='+pw+',height='+ph+',left='+pl+',top='+pt+',toolbar=0,menubar=0,location=1,status=0,scrollbars=1,resizable=1');}
 function eBrowser(){const u=document.getElementById('burl').value.trim();if(u)window.open(u,'_blank');}
 
 // ??????????????????????????????????????????

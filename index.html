@@ -321,6 +321,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
   #briefing-chip{max-width:120px}
 }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -1557,46 +1558,59 @@ Para consultas sin acción concreta (¿qué tengo hoy?, resúmenes, preguntas), 
 Sé útil pero no generes acciones que el usuario no pidió.`;
 
 async function closeGeminiOb(){const el=document.getElementById('gemini-ob');if(el)el.remove();}
+
+async function getGoogleToken(){
+  return new Promise((resolve,reject)=>{
+    if(!window.google){reject(new Error('Google Identity no cargó'));return;}
+    const client=google.accounts.oauth2.initTokenClient({
+      client_id:'410758524022-compute@developer.gserviceaccount.com',
+      scope:'https://www.googleapis.com/auth/generative-language',
+      callback:(resp)=>{
+        if(resp.error){reject(new Error(resp.error));return;}
+        S.cfg.apikey=resp.access_token;
+        S.cfg.apikeyExp=Date.now()+(resp.expires_in-60)*1000;
+        saveLocal();
+        resolve(resp.access_token);
+      }
+    });
+    client.requestAccessToken();
+  });
+}
+
+async function ensureGeminiToken(){
+  if(S.cfg.apikey && S.cfg.apikeyExp && Date.now()<S.cfg.apikeyExp){
+    return S.cfg.apikey;
+  }
+  return await getGoogleToken();
+}
+
 function showGeminiOnboarding(){
   if(document.getElementById('gemini-ob'))return;
   const ov=document.createElement('div');
   ov.id='gemini-ob';
   ov.style.cssText='position:fixed;inset:0;background:#00000088;z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
   const box=document.createElement('div');
-  box.style.cssText='background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:380px;max-width:94vw;box-shadow:var(--shadow-lg)';
-  box.innerHTML='<div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:8px">Activar Asistente IA</div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt3);line-height:1.7;margin-bottom:16px">Necesitas una API key de Google Gemini (gratis):</div>'
-    +'<div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px">'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">1.</b> Abre <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a></div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">2.</b> Inicia sesion con Google y clic en <b>Create API key</b></div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">3.</b> Elige <b>Default Gemini Project</b> y copia la key</div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt2)"><b style="color:var(--accent)">4.</b> Pegala abajo y guarda</div>'
-    +'</div>'
-    +'<input type="text" id="gemini-key-inp" placeholder="Pega tu API key aca" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fm);font-size:13px;outline:none;margin-bottom:8px;box-sizing:border-box">'
-    +'<div id="gemini-err" style="font-family:var(--fm);font-size:11px;color:var(--red);display:none;margin-bottom:8px">Pega la key antes de guardar</div>'
-    +'<div style="display:flex;gap:8px;justify-content:flex-end">'
-    +'<button id="gemini-cancel" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button>'
-    +'<button id="gemini-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:600;cursor:pointer">Guardar y usar</button>'
-    +'</div>';
+  box.style.cssText='background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:360px;max-width:94vw;box-shadow:var(--shadow-lg);text-align:center';
+  box.innerHTML='<div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:10px">Activar Asistente IA</div>'
+    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt3);line-height:1.7;margin-bottom:20px">El asistente usa Gemini de Google (gratis).<br>Solo necesitas conectar tu cuenta Google una vez.</div>'
+    +'<button id="gemini-google-btn" style="background:#4285f4;border:none;color:#fff;border-radius:9px;padding:12px 24px;font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">Conectar con Google</button>'
+    +'<div id="gemini-err" style="font-family:var(--fm);font-size:11px;color:var(--red);display:none;margin-top:8px"></div>'
+    +'<button id="gemini-cancel" style="background:none;border:none;color:var(--txt3);font-family:var(--fm);font-size:11px;cursor:pointer;margin-top:4px">Cancelar</button>';
   ov.appendChild(box);
   document.body.appendChild(ov);
   document.getElementById('gemini-cancel').onclick=closeGeminiOb;
   ov.addEventListener('click',e=>{if(e.target===ov)closeGeminiOb();});
-  const inp=document.getElementById('gemini-key-inp');
-  inp.focus();
-  function saveKey(){
-    const k=inp.value.trim();
-    if(!k){document.getElementById('gemini-err').style.display='block';return;}
-    S.cfg.apikey=k;
-    const cfgEl=document.getElementById('cfg-api');
-    if(cfgEl)cfgEl.value=k;
-    saveLocal();
-    closeGeminiOb();
-    toast('API key guardada');
-    sendIA();
-  }
-  document.getElementById('gemini-ok').onclick=saveKey;
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveKey();});
+  document.getElementById('gemini-google-btn').onclick=async()=>{
+    try{
+      await getGoogleToken();
+      closeGeminiOb();
+      toast('Gemini conectado');
+      sendIA();
+    }catch(e){
+      document.getElementById('gemini-err').style.display='block';
+      document.getElementById('gemini-err').textContent='Error: '+e.message;
+    }
+  };
 }
 async function sendIA(){
   const inp=document.getElementById('ia-inp');const text=inp.value.trim();if(!text)return;
@@ -1607,10 +1621,11 @@ async function sendIA(){
   S.iaHist.push({role:'user',content:wsContext()+'\n\nUsuario: '+text});
   const typing=appendIATyping();
   try{
+    const OR_KEY='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';
     const msgs=S.iaHist.slice(-12).map(m=>({role:m.role==='assistant'?'model':'user',content:m.content}));
     const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apikey,'HTTP-Referer':'https://fdovat-cell.github.io','X-Title':'Workspace Personal'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+OR_KEY,'HTTP-Referer':'https://fdovat-cell.github.io','X-Title':'Workspace Personal'},
       body:JSON.stringify({model:'google/gemini-2.0-flash-exp:free',messages:[{role:'system',content:IA_SYS},...msgs]}),
     });
     const data=await res.json();

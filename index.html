@@ -748,7 +748,7 @@ const SALT='WSP2025';
 const S={
   user:null,userName:'',userEmail:'',
   events:[],venc:[],notas:[],
-  cfg:{apikey:'',fx:42,pais:'uy',iaDirectMode:false},
+  cfg:{apikey:'AQ.Ab8RN6IO8tNdG-vpvTUUi2bCyhR2qQVckXkpJLOovtWCOyLqyw',fx:42,pais:'uy',iaDirectMode:false},
   sheetData:[],iaHist:[],
   day:new Date(),month:new Date(),
   view:'day',curNota:null,selCat:'trabajo',editEv:null,
@@ -1603,7 +1603,7 @@ async function sendIA(){
   const typing=appendIATyping();
   try{
     const msgs=S.iaHist.slice(-12).map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apikey}`,{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apikey}`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({system_instruction:{parts:[{text:IA_SYS}]},contents:msgs}),

@@ -327,7 +327,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="auth-logo" id="auth-logo-click">W<b>·</b>S  Workspace Personal</div>
+    <div class="auth-logo" id="auth-logo-click" onclick="logoClicks++;clearTimeout(logoTimer);if(logoClicks>=5){logoClicks=0;openAdminPrompt();}else logoTimer=setTimeout(()=>{logoClicks=0;},800);">W<b>·</b>S  Workspace Personal</div>
     <div id="auth-login-wrap">
       <div class="auth-title">Bienvenido</div>
       <div class="auth-sub">Ingresá para acceder a tu workspace desde cualquier dispositivo.</div>
@@ -870,7 +870,7 @@ function genCode(){
   document.getElementById('code-info').textContent='Destinatario: '+(dest||'')+'\nTier: '+tier+'\nVencimiento: '+exp+'\nFecha: '+new Date().toLocaleString('es-UY');
   document.getElementById('code-box').classList.add('show');
 }
-function cpCode(){navigator.clipboard.writeText(lastCode).then(()=>toast('Código copiado ?'));}
+async function cpCode(){navigator.clipboard.writeText(lastCode).then(()=>toast('Código copiado ?'));}
 async function loadUsers(){
   const el=document.getElementById('acts-wrap');
   el.innerHTML='<div style="font-family:var(--fm);font-size:11px;color:var(--txt3)">Cargando...</div>';
@@ -1274,8 +1274,8 @@ function calcIVA(){const b=parseFloat(document.getElementById('ib').value)||0,r=
 function calcPct(){const b=parseFloat(document.getElementById('pb').value)||0,p=parseFloat(document.getElementById('pp').value)||0,v=b*p/100;document.getElementById('pr').innerHTML=`<span>${p}% = <b style="color:var(--txt)">${f2(v)}</b></span><span>Con descuento: <b style="color:var(--green)">${f2(b-v)}</b></span>`;}
 function fxU(){const r=parseFloat(document.getElementById('fxr').value)||S.cfg.fx||42;document.getElementById('fusd').value=((parseFloat(document.getElementById('fuyu').value)||0)/r).toFixed(2);}
 function fxD(){const r=parseFloat(document.getElementById('fxr').value)||S.cfg.fx||42;document.getElementById('fuyu').value=((parseFloat(document.getElementById('fusd').value)||0)*r).toFixed(2);}
-function calcFX(){fxU();}
-function onFxRateChange(){const v=parseFloat(document.getElementById('fxr').value);if(v>0){S.cfg.fx=v;saveLocal();}fxU();}
+async function calcFX(){fxU();}
+async function onFxRateChange(){const v=parseFloat(document.getElementById('fxr').value);if(v>0){S.cfg.fx=v;saveLocal();}fxU();}
 function f2(n){return n.toLocaleString('es-UY',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
 // Tipo de cambio en vivo  silencioso
@@ -1591,7 +1591,7 @@ async function showGeminiOnboarding(){
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveGeminiKey();});
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
 }
-function sendIA(){
+async function sendIA(){
   const inp=document.getElementById('ia-inp');const text=inp.value.trim();if(!text)return;
   const apikey=S.cfg.apikey;
   if(!apikey){showGeminiOnboarding();return;}

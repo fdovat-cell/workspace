@@ -1917,21 +1917,21 @@ async function checkBriefing(){
 
 async function openBriefing(){
   sw('ia');
-  if(!S.cfg.apikey){appendIA('sys','Configurá tu API key para el briefing automático.');return;}
   const today=dk(new Date());
-  const todayEvs=S.events.filter(e=>e.fecha===today&&e.cat!=='feriado');
-  const urgVenc=S.venc.filter(v=>du(v.fecha)>=0&&du(v.fecha)<=7);
   appendIA('user','Dame un resumen rápido de lo importante para hoy y esta semana.');
   S.iaHist.push({role:'user',content:wsContext()+'\n\nUsuario: Dame un resumen rápido de lo importante para hoy y esta semana. Sé conciso.'});
   const typing=appendIATyping();
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const GROQ_KEY='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';
+    const msgs=S.iaHist.slice(-6).filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,content:m.content}));
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':S.cfg.apikey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:IA_SYS,messages:S.iaHist.slice(-6)}),
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,messages:[{role:'system',content:IA_SYS},...msgs]}),
     });
     const data=await res.json();
-    const reply=data.content?.[0]?.text||'Sin datos suficientes para el resumen.';
+    if(data.error)throw new Error(data.error.message);
+    const reply=data.choices?.[0]?.message?.content||'Sin datos suficientes para el resumen.';
     typing.remove();
     appendIA('bot',reply.replace(/ACTION_JSON:.+$/s,'').trim());
     S.iaHist.push({role:'assistant',content:reply});

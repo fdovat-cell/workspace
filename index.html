@@ -316,7 +316,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .home-greeting{margin-bottom:4px}
 .home-greeting h1{font-family:var(--fh);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:2px}
 .home-greeting p{font-family:var(--fm);font-size:11px;color:var(--txt3)}
-.home-widgets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.home-widgets{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .hw{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow)}
 .hw-lbl{font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
 .hw-val{font-family:var(--fh);font-size:26px;font-weight:800;color:var(--txt);line-height:1}
@@ -398,6 +398,38 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .bov-del-btn{background:transparent;border:1px solid transparent;color:var(--txt3);border-radius:6px;padding:4px 9px;font-family:var(--fm);font-size:10px;cursor:pointer;transition:var(--tr);margin-left:auto}
 .bov-del-btn:hover{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
 
+/* ── POPUP SYSTEM ── */
+#popup-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:800;backdrop-filter:blur(3px);animation:fadeOv .15s ease}
+#popup-ov.open{display:block}
+@keyframes fadeOv{from{opacity:0}to{opacity:1}}
+#popup-box{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:min(94vw,900px);height:min(88dvh,680px);
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:popIn .18s cubic-bezier(.4,0,.2,1);z-index:801;
+}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#popup-close{
+  position:absolute;top:10px;right:12px;width:28px;height:28px;
+  border-radius:7px;background:var(--bg3);border:1px solid var(--line2);
+  color:var(--txt2);cursor:pointer;font-size:16px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--tr);z-index:10;
+}
+#popup-close:hover{background:var(--bg4);color:var(--txt)}
+#popup-box .panel{display:flex!important;flex:1;overflow:hidden}
+@media(max-width:600px){
+  #popup-box{
+    top:auto;left:0;right:0;bottom:0;width:100%;
+    height:92dvh;border-radius:20px 20px 0 0;
+    transform:none;animation:slideUp .2s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+}
+
 @media(max-width:600px){
   :root{--sb:44px;--tb:44px}
   .phdr,.vadd{padding:8px 10px}
@@ -412,6 +444,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
   .hw-val{font-size:20px}
   .home-body{padding:14px 14px;gap:12px}
   .home-greeting h1{font-size:17px}
+  /* Planilla mobile */
+  .sth,.srn{min-width:16px!important;padding:2px 3px!important;font-size:8px!important}
+  .std{min-width:50px!important}
+  .si{font-size:10px!important;padding:2px 3px!important}
+  /* Popup mobile */
+  #popup-box .phdr{padding:8px 40px 8px 12px}
 }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -576,11 +614,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
             <div class="hw-val" id="hw-evcount">0</div>
             <div class="hw-sub" id="hw-evsub">eventos agendados</div>
           </div>
-          <div class="hw">
-            <div class="hw-lbl">Vencimientos urgentes</div>
-            <div class="hw-val urg" id="hw-vcount">0</div>
-            <div class="hw-sub">en los próximos 7 días</div>
-          </div>
+
           <div class="hw" id="hw-clima">
             <div class="hw-lbl">Montevideo</div>
             <div class="hw-val clima" id="hw-temp">—°</div>
@@ -782,27 +816,27 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     <!-- NOTAS -->
     <div class="panel" id="p-notas">
       <div class="phdr">
+        <button id="nback-btn" onclick="notasBack()" style="display:none;background:transparent;border:none;color:var(--accent);font-family:var(--fm);font-size:12px;cursor:pointer;padding:0;margin-right:8px;flex-shrink:0">← Lista</button>
         <div class="pttl">Notas</div>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-          <input type="text" id="nsearch" placeholder="Buscar" style="background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 8px;font-family:var(--fb);font-size:12px;outline:none;width:140px" oninput="rnNotas()">
+          <input type="text" id="nsearch" placeholder="Buscar" style="background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 8px;font-family:var(--fb);font-size:12px;outline:none;width:110px" oninput="rnNotas()">
           <button class="badd" onclick="newNota()" style="font-size:11px;padding:4px 11px">+ Nueva</button>
         </div>
       </div>
-      <div style="flex:1;display:flex;overflow:hidden">
-        <div id="nlist" style="width:200px;border-right:1px solid var(--line);overflow-y:auto;flex-shrink:0;background:var(--bg2)"></div>
-        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-          <input type="text" id="nttl" placeholder="Título" style="background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--txt);padding:12px 16px;font-family:var(--fh);font-size:16px;font-weight:600;outline:none;flex-shrink:0" oninput="saveNota()">
-          <textarea id="nbody" placeholder="Escribí acá" style="flex:1;background:transparent;border:none;color:var(--txt2);padding:13px 16px;font-family:var(--fm);font-size:13px;line-height:1.8;outline:none;resize:none" oninput="saveNota()"></textarea>
+      <div id="notas-wrap" style="flex:1;display:flex;overflow:hidden">
+        <div id="nlist" style="width:220px;border-right:1px solid var(--line);overflow-y:auto;flex-shrink:0;background:var(--bg2)"></div>
+        <div id="notas-editor" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+          <input type="text" id="nttl" placeholder="Título" style="background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--txt);padding:12px 16px;font-family:var(--fh);font-size:16px;font-weight:600;outline:none;flex-shrink:0" oninput="saveNota()">
+          <textarea id="nbody" placeholder="Escribí acá" style="flex:1;background:transparent;border:none;color:var(--txt2);padding:13px 16px;font-family:var(--fm);font-size:13px;line-height:1.8;outline:none;resize:none" oninput="saveNota()"></textarea>
           <div class="nota-actions">
             <div style="font-family:var(--fm);font-size:10px;color:var(--txt3);flex:1" id="nmeta"></div>
-            <button class="nota-btn" onclick="expNota('txt')">? TXT</button>
-            <button class="nota-btn" onclick="expNota('md')">? MD</button>
+            <button class="nota-btn" onclick="expNota('txt')">↓ TXT</button>
+            <button class="nota-btn" onclick="expNota('md')">↓ MD</button>
             <button class="nota-btn" onclick="delNota()" style="color:var(--red)">Eliminar</button>
           </div>
         </div>
       </div>
     </div>
-
     <!-- BROWSER -->
     <div class="panel" id="p-browser">
       <div class="phdr"><div class="pttl">Navegador</div><div class="psub">Algunos sitios bloquean iframes  usá ?</div></div>
@@ -940,6 +974,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
       <button class="bov-back" onclick="closeBoveda()">Cancelar</button>
     </div>
   </div>
+</div>
+
+<!-- POPUP overlay — secciones sobre el home -->
+<div id="popup-ov" onclick="if(event.target===this)closePopup()"></div>
+<div id="popup-box" style="display:none">
+  <button id="popup-close" onclick="closePopup()">✕</button>
 </div>
 
 <!-- MODAL evento -->
@@ -1244,6 +1284,10 @@ async function enterApp(token,user){
   initIA();
   fetchLiveFX(false);
   initDrop();
+  // Sincronizar datos desde Supabase (multi-dispositivo)
+  loadFromCloud().then(loaded=>{
+    if(loaded){applyTheme(S.theme);loadFeriados();renderDay();rnVenc();renderHome();toast("✓ Datos sincronizados");}
+  });
   // Briefing diferido  no invasivo, solo si hay algo relevante
 }
 async function doLogout(){
@@ -1264,11 +1308,56 @@ function showUserMenu(){sw('config');}
 // ??????????????????????????????????????????
 // LOCAL STORAGE
 // ??????????????????????????????????????????
+// ══════════════════════════════════════════
+// STORAGE — localStorage + Supabase sync
+// ══════════════════════════════════════════
+let syncTimer=null;
+
 function saveLocal(){
   localStorage.setItem('ws3_data',JSON.stringify({
     events:S.events,venc:S.venc,notas:S.notas,cfg:S.cfg,sheetData:S.sheetData,theme:S.theme
   }));
+  // Sync a Supabase con debounce de 2s para no saturar en edición continua
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(syncToCloud,2000);
 }
+
+async function syncToCloud(){
+  const token=getToken();if(!token)return;
+  const uid2=S.userEmail||'anon';
+  const payload={
+    user_email:uid2,
+    events:JSON.stringify(S.events),
+    venc:JSON.stringify(S.venc),
+    notas:JSON.stringify(S.notas),
+    sheet:JSON.stringify(S.sheetData),
+    theme:S.theme,
+    updated_at:new Date().toISOString()
+  };
+  try{
+    await sbFetch('POST','/rest/v1/ws_userdata',payload,token);
+  }catch(e){}
+}
+
+async function loadFromCloud(){
+  const token=getToken();if(!token)return false;
+  try{
+    const rows=await sbFetch('GET','/rest/v1/ws_userdata?user_email=eq.'+encodeURIComponent(S.userEmail)+'&select=*&limit=1',null,token);
+    if(!rows||!rows.length)return false;
+    const d=rows[0];
+    if(d.events)S.events=JSON.parse(d.events);
+    if(d.venc)S.venc=JSON.parse(d.venc);
+    if(d.notas)S.notas=JSON.parse(d.notas);
+    if(d.sheet)S.sheetData=JSON.parse(d.sheet);
+    if(d.theme)S.theme=d.theme;
+    // Persistir localmente también
+    localStorage.setItem('ws3_data',JSON.stringify({
+      events:S.events,venc:S.venc,notas:S.notas,cfg:S.cfg,sheetData:S.sheetData,theme:S.theme
+    }));
+    return true;
+  }catch(e){return false;}
+}
+
 function loadLocal(){
   try{
     const d=JSON.parse(localStorage.getItem('ws3_data')||'{}');
@@ -1301,17 +1390,57 @@ function tickClock(){document.getElementById('top-clock').textContent=new Date()
 // ??????????????????????????????????????????
 // PANELS
 // ??????????????????????????????????????????
+// Paneles que van en popup (sobre el home)
+const POPUP_PANELS=['venc','calc','sheet','notas','browser','ia','config'];
+
+function openPopup(id){
+  const box=document.getElementById('popup-box');
+  const ov=document.getElementById('popup-ov');
+  // Mover el panel dentro del popup-box (después del botón close)
+  const panel=document.getElementById('p-'+id);
+  if(!panel)return;
+  box.appendChild(panel);
+  box.style.display='flex';
+  ov.classList.add('open');
+  // Activar panel
+  document.querySelectorAll('#popup-box .panel').forEach(p=>p.classList.remove('active'));
+  panel.classList.add('active');
+  // Callbacks de render
+  if(id==='venc')rnVenc();
+  if(id==='notas')rnNotas();
+  if(id==='sheet')rnSheet();
+}
+function closePopup(){
+  const box=document.getElementById('popup-box');
+  const ov=document.getElementById('popup-ov');
+  // Devolver paneles al main
+  const main=document.getElementById('main');
+  box.querySelectorAll('.panel').forEach(p=>{p.classList.remove('active');main.appendChild(p);});
+  box.style.display='none';
+  ov.classList.remove('open');
+}
+
 function sw(id){
+  // Siempre cerrar popup abierto primero
+  closePopup();
+  if(POPUP_PANELS.includes(id)){
+    // Asegurar que home quede visible de fondo
+    document.querySelectorAll('#main > .panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('p-home').classList.add('active');
+    document.getElementById('layout').classList.add('home-mode');
+    openPopup(id);
+    // Sidebar highlight
+    document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
+    const nb=document.getElementById('n-'+id);if(nb)nb.classList.add('active');
+    return;
+  }
+  // Fullscreen: home, agenda, boveda
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-'+id).classList.add('active');
   const nb=document.getElementById('n-'+id);if(nb)nb.classList.add('active');
-  // Sidebar: ocultar en home, mostrar en el resto
   document.getElementById('layout').classList.toggle('home-mode', id==='home');
   if(id==='agenda')rcv();
-  if(id==='venc')rnVenc();
-  if(id==='notas')rnNotas();
-  if(id==='sheet')rnSheet();
   if(id==='home')renderHome();
   if(id==='boveda')openBoveda();
 }
@@ -1629,13 +1758,46 @@ function rnNotas(){
   const list=document.getElementById('nlist');
   if(!notas.length){list.innerHTML='<div style="padding:16px 10px;text-align:center;font-family:var(--fm);font-size:11px;color:var(--txt3)">Sin notas</div>';return;}
   list.innerHTML=notas.map(n=>`<div class="nitem${S.curNota===n.id?' active':''}" onclick="openNota('${n.id}')"><div class="nit">${n.titulo||'Sin título'}</div><div class="nip">${(n.body||'').slice(0,50)}</div></div>`).join('');
-  // Auto-open primera nota si no hay ninguna seleccionada
   if(!S.curNota&&notas.length)openNota(notas[0].id);
 }
-function newNota(){const n={id:uid(),titulo:'',body:'',updated:Date.now()};S.notas.unshift(n);S.curNota=n.id;saveLocal();rnNotas();openNota(n.id);document.getElementById('nttl').focus();}
-function openNota(id){S.curNota=id;const n=S.notas.find(n=>n.id===id);if(!n)return;document.getElementById('nttl').value=n.titulo||'';document.getElementById('nbody').value=n.body||'';document.getElementById('nmeta').textContent=n.updated?'Guardado: '+new Date(n.updated).toLocaleString('es-UY'):'';rnNotas();}
-function saveNota(){const n=S.notas.find(n=>n.id===S.curNota);if(!n)return;n.titulo=document.getElementById('nttl').value;n.body=document.getElementById('nbody').value;n.updated=Date.now();document.getElementById('nmeta').textContent='Guardado: '+new Date().toLocaleString('es-UY');saveLocal();rnNotas();}
-function delNota(){if(!S.curNota)return;if(!confirm('¿Eliminar esta nota?'))return;S.notas=S.notas.filter(n=>n.id!==S.curNota);S.curNota=null;document.getElementById('nttl').value='';document.getElementById('nbody').value='';document.getElementById('nmeta').textContent='';saveLocal();rnNotas();}
+function notasIsMobile(){return window.innerWidth<=600;}
+function notasBack(){
+  // Volver a mostrar lista en mobile
+  document.getElementById('nlist').style.display='';
+  document.getElementById('notas-editor').style.display='none';
+  document.getElementById('nback-btn').style.display='none';
+  S.curNota=null;
+}
+function openNota(id){
+  S.curNota=id;
+  const n=S.notas.find(n=>n.id===id);
+  if(!n)return;
+  document.getElementById('nttl').value=n.titulo||'';
+  document.getElementById('nbody').value=n.body||'';
+  document.getElementById('nmeta').textContent=n.updated?'Guardado: '+new Date(n.updated).toLocaleString('es-UY'):'';
+  // Mobile: ocultar lista, mostrar editor
+  if(notasIsMobile()){
+    document.getElementById('nlist').style.display='none';
+    document.getElementById('notas-editor').style.display='flex';
+    document.getElementById('nback-btn').style.display='inline';
+  }
+  rnNotas();
+}
+function newNota(){
+  const n={id:uid(),titulo:'',body:'',updated:Date.now()};
+  S.notas.unshift(n);S.curNota=n.id;
+  saveLocal();rnNotas();openNota(n.id);
+  document.getElementById('nttl').focus();
+}
+function saveNota(){
+  const n=S.notas.find(n=>n.id===S.curNota);if(!n)return;
+  n.titulo=document.getElementById('nttl').value;
+  n.body=document.getElementById('nbody').value;
+  n.updated=Date.now();
+  document.getElementById('nmeta').textContent='Guardado: '+new Date().toLocaleString('es-UY');
+  saveLocal();rnNotas();
+}
+function delNota(){if(!S.curNota)return;if(!confirm('¿Eliminar esta nota?'))return;S.notas=S.notas.filter(n=>n.id!==S.curNota);S.curNota=null;document.getElementById('nttl').value='';document.getElementById('nbody').value='';document.getElementById('nmeta').textContent='';saveLocal();if(notasIsMobile())notasBack();else rnNotas();}
 function expNota(fmt){
   const n=S.notas.find(n=>n.id===S.curNota);if(!n)return;
   const content=fmt==='md'?`# ${n.titulo}\n\n${n.body}`:`${n.titulo}\n\n${n.body}`;
@@ -2012,7 +2174,6 @@ function renderHome(){
   document.getElementById('hw-evcount').textContent=todayEvs.length;
   document.getElementById('hw-evsub').textContent=todayEvs.length===1?'evento agendado':'eventos agendados';
   const urgV=S.venc.filter(v=>{const d=du(v.fecha);return d>=0&&d<=7;}).length;
-  document.getElementById('hw-vcount').textContent=urgV;
   const hmbv=document.getElementById('hmod-vbadge');
   if(urgV>0){hmbv.textContent=urgV;hmbv.style.display='block';}else{hmbv.style.display='none';}
 
@@ -2249,16 +2410,32 @@ function changeBovPin(){
 // ══════════════════════════════════════════
 // SQL SETUP
 // ??????????????????????????????????????????
-console.log('%c WORKSPACE  SQL para Supabase','color:#5b4fff;font-weight:bold;font-size:13px');
-console.log(`CREATE TABLE IF NOT EXISTS ws_profiles (
+console.log('%c WORKSPACE — SQL para Supabase','color:#5b4fff;font-weight:bold;font-size:13px');
+console.log(`-- 1) Tabla perfiles admin
+CREATE TABLE IF NOT EXISTS ws_profiles (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
   name text, email text, tier text DEFAULT 'pro', code text,
   created_at timestamptz DEFAULT now()
 );
 ALTER TABLE ws_profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "users own profile" ON ws_profiles FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "admin read all" ON ws_profiles FOR SELECT USING (true);`);
+CREATE POLICY users_own_profile ON ws_profiles FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY admin_read_all ON ws_profiles FOR SELECT USING (true);
+
+-- 2) Tabla datos usuario (multi-dispositivo)
+CREATE TABLE IF NOT EXISTS ws_userdata (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_email text UNIQUE NOT NULL,
+  events text DEFAULT '[]',
+  venc text DEFAULT '[]',
+  notas text DEFAULT '[]',
+  sheet text DEFAULT '[]',
+  theme text DEFAULT 'light',
+  updated_at timestamptz DEFAULT now()
+);
+ALTER TABLE ws_userdata ENABLE ROW LEVEL SECURITY;
+CREATE POLICY users_own_data ON ws_userdata FOR ALL USING (user_email = (auth.jwt()->>'email'));
+`);
 
 // ??????????????????????????????????????????
 // INIT

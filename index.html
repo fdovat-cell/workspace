@@ -311,6 +311,96 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .cfg-lbl{font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:11px}
 .cfg-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 
+/* ══════════════════════════════════════════
+   HOME DASHBOARD
+══════════════════════════════════════════ */
+#p-home{background:var(--bg)}
+.home-body{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.home-greeting{margin-bottom:4px}
+.home-greeting h1{font-family:var(--fh);font-size:22px;font-weight:800;color:var(--txt);margin-bottom:2px}
+.home-greeting p{font-family:var(--fm);font-size:11px;color:var(--txt3)}
+.home-widgets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hw{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow)}
+.hw-lbl{font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.hw-val{font-family:var(--fh);font-size:26px;font-weight:800;color:var(--txt);line-height:1}
+.hw-sub{font-family:var(--fm);font-size:11px;color:var(--txt3);margin-top:4px}
+.hw-val.urg{color:var(--red)}
+.hw-val.clima{font-size:30px}
+.home-modules{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.hmod{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 13px;cursor:pointer;transition:all var(--tr);display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden}
+.hmod:hover{background:var(--bg3);border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.hmod:active{transform:translateY(0)}
+.hmod-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hmod-icon svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;width:17px;height:17px}
+.hmod-icon.agenda{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border)}
+.hmod-icon.venc{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+.hmod-icon.notas{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.hmod-icon.calc{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-border)}
+.hmod-icon.sheet{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+.hmod-icon.browser{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+.hmod-icon.ia{background:#f3e5f511;color:#7c3aed;border:1px solid #7c3aed33}
+.hmod-icon.boveda{background:#1c1b1811;color:var(--txt2);border:1px solid var(--line2)}
+[data-theme=dark] .hmod-icon.boveda{background:#ffffff0a;color:var(--txt2);border:1px solid var(--line2)}
+.hmod-name{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--txt)}
+.hmod-hint{font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:1px}
+.hmod-badge{position:absolute;top:9px;right:9px;background:var(--red);color:#fff;font-size:9px;font-family:var(--fm);border-radius:9px;padding:1px 6px;font-weight:500}
+.home-bottom{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.hb-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow)}
+.hb-ttl{font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.hev{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
+.hev:last-child{border-bottom:none}
+.hev-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.hev-time{font-family:var(--fm);font-size:10px;color:var(--txt3);width:36px;flex-shrink:0}
+.hev-name{font-size:12px;color:var(--txt);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hvenc{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+.hvenc:last-child{border-bottom:none}
+.hvenc-days{font-family:var(--fm);font-size:11px;font-weight:700;width:26px;text-align:right;flex-shrink:0}
+.hvenc-days.urg{color:var(--red)}
+.hvenc-days.prx{color:var(--amber)}
+.hvenc-days.ok{color:var(--green)}
+.hvenc-info{flex:1;overflow:hidden}
+.hvenc-name{font-size:12px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hvenc-cat{font-family:var(--fm);font-size:10px;color:var(--txt3)}
+
+/* ══════════════════════════════════════════
+   BÓVEDA PRIVADA
+══════════════════════════════════════════ */
+#boveda-lock{position:fixed;inset:0;z-index:800;background:var(--bg);display:none;align-items:center;justify-content:center}
+#boveda-lock.open{display:flex}
+.bov-lock-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-xl);padding:36px 40px;width:360px;max-width:94vw;box-shadow:var(--shadow-lg);animation:fadeUp .3s ease both;text-align:center}
+.bov-lock-icon{width:52px;height:52px;border-radius:14px;background:var(--bg3);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px}
+.bov-lock-title{font-family:var(--fh);font-size:18px;font-weight:800;color:var(--txt);margin-bottom:5px}
+.bov-lock-sub{font-family:var(--fm);font-size:11px;color:var(--txt3);margin-bottom:20px}
+.bov-pin-row{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.bov-pin-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--line2);background:transparent;transition:var(--tr)}
+.bov-pin-dot.filled{background:var(--txt);border-color:var(--txt)}
+.bov-pin-dot.wrong{background:var(--red);border-color:var(--red)}
+.bov-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:200px;margin:0 auto}
+.bov-num{background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-family:var(--fh);font-size:17px;font-weight:700;cursor:pointer;transition:var(--tr)}
+.bov-num:hover{background:var(--bg4);border-color:var(--line2)}
+.bov-num:active{transform:scale(.95)}
+.bov-num.del{font-size:14px;color:var(--txt2)}
+.bov-num.empty{visibility:hidden}
+.bov-err{font-family:var(--fm);font-size:11px;color:var(--red);margin-top:10px;min-height:16px}
+.bov-back{background:none;border:none;font-family:var(--fm);font-size:11px;color:var(--txt3);cursor:pointer;margin-top:14px;display:block;margin-left:auto;margin-right:auto}
+.bov-back:hover{color:var(--txt2)}
+.bov-setup{display:none;flex-direction:column;gap:8px}
+.bov-setup.show{display:flex}
+#p-boveda{background:var(--bg)}
+#p-boveda .phdr{background:var(--bg2)}
+.bov-body{flex:1;display:flex;overflow:hidden}
+.bov-list{width:210px;border-right:1px solid var(--line);overflow-y:auto;flex-shrink:0;background:var(--bg2)}
+.bov-item{padding:10px 13px;border-bottom:1px solid var(--line);cursor:pointer;transition:background var(--tr)}
+.bov-item:hover{background:var(--bg3)}
+.bov-item.active{background:var(--accent-dim);border-left:2px solid var(--accent)}
+.bov-it{font-size:13px;font-weight:500;color:var(--txt);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bov-ip{font-size:10px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--fm)}
+.bov-editor{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.bov-lock-overlay{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;color:var(--txt3)}
+.bov-actions{padding:5px 13px;border-top:1px solid var(--line);display:flex;gap:6px;background:var(--bg2)}
+.bov-del-btn{background:transparent;border:1px solid transparent;color:var(--txt3);border-radius:6px;padding:4px 9px;font-family:var(--fm);font-size:10px;cursor:pointer;transition:var(--tr);margin-left:auto}
+.bov-del-btn:hover{background:var(--red-dim);border-color:var(--red-border);color:var(--red)}
+
 @media(max-width:600px){
   :root{--sb:44px;--tb:44px}
   .phdr,.vadd{padding:8px 10px}
@@ -426,6 +516,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 <!-- LAYOUT -->
 <div id="layout">
   <nav id="sidebar">
+    <button class="nbtn" onclick="sw('home')" id="n-home">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      <span class="nttp">Inicio</span>
+    </button>
     <button class="nbtn active" onclick="sw('agenda')" id="n-agenda">
       <svg width="18" height="18" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span class="nttp">Agenda</span>
@@ -458,6 +552,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
       <span class="nttp">Asistente IA</span>
     </button>
     <div class="nspc"></div>
+    <button class="nbtn" onclick="sw('boveda')" id="n-boveda">
+      <svg width="18" height="18" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span class="nttp">Bóveda privada</span>
+    </button>
     <button class="nbtn" onclick="sw('config')" id="n-config">
       <svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span class="nttp">Configuración</span>
@@ -465,6 +563,104 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
   </nav>
 
   <div id="main">
+    <!-- HOME DASHBOARD -->
+    <div class="panel" id="p-home">
+      <div class="home-body" id="home-body">
+        <div class="home-greeting">
+          <h1 id="home-greeting-txt">Buen día</h1>
+          <p id="home-date-txt"></p>
+        </div>
+        <div class="home-widgets">
+          <div class="hw">
+            <div class="hw-lbl">Hoy tenés</div>
+            <div class="hw-val" id="hw-evcount">0</div>
+            <div class="hw-sub" id="hw-evsub">eventos agendados</div>
+          </div>
+          <div class="hw">
+            <div class="hw-lbl">Vencimientos urgentes</div>
+            <div class="hw-val urg" id="hw-vcount">0</div>
+            <div class="hw-sub">en los próximos 7 días</div>
+          </div>
+          <div class="hw" id="hw-clima">
+            <div class="hw-lbl">Montevideo</div>
+            <div class="hw-val clima" id="hw-temp">—°</div>
+            <div class="hw-sub" id="hw-cond">Cargando clima…</div>
+          </div>
+        </div>
+        <div class="home-modules">
+          <div class="hmod" onclick="sw('agenda')">
+            <div class="hmod-icon agenda"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div><div class="hmod-name">Agenda</div><div class="hmod-hint">Día · semana · mes</div></div>
+          </div>
+          <div class="hmod" onclick="sw('venc')">
+            <div class="hmod-icon venc"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
+            <div><div class="hmod-name">Vencimientos</div><div class="hmod-hint">Impuestos y pagos</div></div>
+            <div class="hmod-badge" id="hmod-vbadge" style="display:none"></div>
+          </div>
+          <div class="hmod" onclick="sw('notas')">
+            <div class="hmod-icon notas"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <div><div class="hmod-name">Notas</div><div class="hmod-hint">Texto libre · búsqueda</div></div>
+          </div>
+          <div class="hmod" onclick="sw('calc')">
+            <div class="hmod-icon calc"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="9" y2="10"/><line x1="12" y1="10" x2="13" y2="10"/><line x1="16" y1="10" x2="17" y2="10"/><line x1="8" y1="14" x2="9" y2="14"/><line x1="12" y1="14" x2="13" y2="14"/><line x1="16" y1="14" x2="17" y2="14"/><line x1="8" y1="18" x2="9" y2="18"/><line x1="12" y1="18" x2="13" y2="18"/><line x1="16" y1="18" x2="17" y2="18"/></svg></div>
+            <div><div class="hmod-name">Calculadora</div><div class="hmod-hint">IVA · % · UYU/USD</div></div>
+          </div>
+          <div class="hmod" onclick="sw('sheet')">
+            <div class="hmod-icon sheet"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></div>
+            <div><div class="hmod-name">Planilla</div><div class="hmod-hint">Datos · CSV · Excel</div></div>
+          </div>
+          <div class="hmod" onclick="sw('browser')">
+            <div class="hmod-icon browser"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+            <div><div class="hmod-name">Navegador</div><div class="hmod-hint">Web embebida</div></div>
+          </div>
+          <div class="hmod" onclick="sw('ia')">
+            <div class="hmod-icon ia"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <div><div class="hmod-name">Asistente IA</div><div class="hmod-hint">Claude · workspace</div></div>
+          </div>
+          <div class="hmod" onclick="openBoveda()">
+            <div class="hmod-icon boveda"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+            <div><div class="hmod-name">Bóveda</div><div class="hmod-hint">Notas privadas · PIN</div></div>
+          </div>
+        </div>
+        <div class="home-bottom">
+          <div class="hb-card">
+            <div class="hb-ttl">Eventos de hoy</div>
+            <div id="home-evlist"><div class="empty-t" style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin eventos hoy</div></div>
+          </div>
+          <div class="hb-card">
+            <div class="hb-ttl">Próximos vencimientos</div>
+            <div id="home-vlist"><div class="empty-t" style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin vencimientos</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BÓVEDA PANEL -->
+    <div class="panel" id="p-boveda">
+      <div class="phdr">
+        <div class="pttl">🔒 Bóveda privada</div>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <button class="badd" onclick="newBovNota()" id="bov-new-btn" style="font-size:11px;padding:4px 11px;display:none">+ Nueva nota</button>
+          <button class="badd" onclick="bovLockOut()" style="font-size:11px;padding:4px 11px;background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">Bloquear</button>
+        </div>
+      </div>
+      <div class="bov-body">
+        <div class="bov-list" id="bov-list"></div>
+        <div class="bov-editor" id="bov-editor">
+          <div class="bov-lock-overlay" id="bov-locked-msg">
+            <div style="font-size:28px;opacity:.3">🔒</div>
+            <div style="font-family:var(--fm);font-size:12px">Bóveda bloqueada</div>
+          </div>
+          <input type="text" id="bov-ttl" placeholder="Título…" style="display:none;background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--txt);padding:12px 16px;font-family:var(--fh);font-size:16px;font-weight:600;outline:none;flex-shrink:0" oninput="saveBovNota()">
+          <textarea id="bov-body" placeholder="Escribí acá… (solo vos podés ver esto)" style="display:none;flex:1;background:transparent;border:none;color:var(--txt2);padding:13px 16px;font-family:var(--fm);font-size:13px;line-height:1.8;outline:none;resize:none" oninput="saveBovNota()"></textarea>
+          <div class="bov-actions" id="bov-actions" style="display:none">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--txt3)" id="bov-meta"></div>
+            <button class="bov-del-btn" onclick="delBovNota()">Eliminar nota</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- AGENDA -->
     <div class="panel active" id="p-agenda">
       <div class="tbbar">
@@ -697,6 +893,51 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
           <input type="file" id="imp-f" accept=".json" style="display:none" onchange="impData(event)">
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- BÓVEDA LOCK SCREEN (outside layout, full screen overlay) -->
+<div id="boveda-lock">
+  <div class="bov-lock-card">
+    <div class="bov-lock-icon">🔒</div>
+    <div class="bov-lock-title" id="bov-lock-title">Bóveda privada</div>
+    <div class="bov-lock-sub" id="bov-lock-sub">Ingresá tu PIN de 4 dígitos</div>
+
+    <!-- PIN entry -->
+    <div id="bov-pin-view">
+      <div class="bov-pin-row" id="bov-pin-dots">
+        <div class="bov-pin-dot" id="bpd0"></div>
+        <div class="bov-pin-dot" id="bpd1"></div>
+        <div class="bov-pin-dot" id="bpd2"></div>
+        <div class="bov-pin-dot" id="bpd3"></div>
+      </div>
+      <div class="bov-numpad">
+        <button class="bov-num" onclick="bovPin('1')">1</button>
+        <button class="bov-num" onclick="bovPin('2')">2</button>
+        <button class="bov-num" onclick="bovPin('3')">3</button>
+        <button class="bov-num" onclick="bovPin('4')">4</button>
+        <button class="bov-num" onclick="bovPin('5')">5</button>
+        <button class="bov-num" onclick="bovPin('6')">6</button>
+        <button class="bov-num" onclick="bovPin('7')">7</button>
+        <button class="bov-num" onclick="bovPin('8')">8</button>
+        <button class="bov-num" onclick="bovPin('9')">9</button>
+        <button class="bov-num empty"></button>
+        <button class="bov-num" onclick="bovPin('0')">0</button>
+        <button class="bov-num del" onclick="bovDel()">⌫</button>
+      </div>
+      <div class="bov-err" id="bov-err"></div>
+      <button class="bov-back" onclick="closeBoveda()">← Cancelar</button>
+    </div>
+
+    <!-- Setup PIN (first time) -->
+    <div class="bov-setup" id="bov-setup-view">
+      <div style="font-family:var(--fm);font-size:11px;color:var(--txt3);text-align:center;margin-bottom:4px">Elegí un PIN de 4 dígitos para proteger tus notas privadas.</div>
+      <input type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" id="bov-setup-pin" class="auth-input" placeholder="PIN (4 dígitos)" style="text-align:center;letter-spacing:.18em;font-family:var(--fm);font-size:18px">
+      <input type="password" maxlength="4" inputmode="numeric" pattern="[0-9]*" id="bov-setup-pin2" class="auth-input" placeholder="Confirmá el PIN" style="text-align:center;letter-spacing:.18em;font-family:var(--fm);font-size:18px" onkeydown="if(event.key==='Enter')bovSetupConfirm()">
+      <div class="bov-err" id="bov-setup-err"></div>
+      <button class="auth-btn" onclick="bovSetupConfirm()">Crear bóveda</button>
+      <button class="bov-back" onclick="closeBoveda()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1006,6 +1247,13 @@ async function doLogout(){
 }
 function showUserMenu(){sw('config');}
 
+  // Abrir home dashboard
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nbtn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("p-home").classList.add("active");
+  var nh=document.getElementById("n-home");if(nh)nh.classList.add("active");
+  renderHome();
+  fetchClima();
 // ??????????????????????????????????????????
 // LOCAL STORAGE
 // ??????????????????????????????????????????
@@ -1055,6 +1303,8 @@ function sw(id){
   if(id==='venc')rnVenc();
   if(id==='notas')rnNotas();
   if(id==='sheet')rnSheet();
+  if(id==='home')renderHome();
+  if(id==='boveda')openBoveda();
 }
 function swv(v,btn){
   S.view=v;
@@ -1828,7 +2078,273 @@ function regPWA(){
 // ??????????????????????????????????????????
 function toast(msg,ms=2400){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),ms);}
 
-// ??????????????????????????????????????????
+// ══════════════════════════════════════════
+// HOME DASHBOARD
+// ══════════════════════════════════════════
+async function fetchClima(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=-34.9&longitude=-56.17&current=temperature_2m,weathercode,windspeed_10m&timezone=America/Montevideo');
+    const d=await r.json();
+    const temp=Math.round(d.current.temperature_2m);
+    const wind=Math.round(d.current.windspeed_10m);
+    const wc=d.current.weathercode;
+    const cond=wc===0?'Despejado':wc<=3?'Parcialmente nublado':wc<=45?'Nublado':wc<=67?'Lluvia':wc<=77?'Nieve':'Tormenta';
+    document.getElementById('hw-temp').textContent=temp+'°';
+    document.getElementById('hw-cond').textContent=cond+' · Viento '+wind+' km/h';
+  }catch(e){document.getElementById('hw-cond').textContent='Sin datos de clima';}
+}
+
+function renderHome(){
+  const now=new Date();
+  const hour=now.getHours();
+  const greet=hour<12?'Buenos días':hour<19?'Buenas tardes':'Buenas noches';
+  document.getElementById('home-greeting-txt').textContent=greet+', '+S.userName+' 👋';
+  const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const wk=Math.ceil(now.getDate()/7);
+  document.getElementById('home-date-txt').textContent=days[now.getDay()]+', '+now.getDate()+' de '+months[now.getMonth()]+' · semana '+getWeekNum(now);
+
+  // Widgets numéricos
+  const today=dk(now);
+  const todayEvs=S.events.filter(e=>e.fecha===today&&e.cat!=='feriado');
+  document.getElementById('hw-evcount').textContent=todayEvs.length;
+  document.getElementById('hw-evsub').textContent=todayEvs.length===1?'evento agendado':'eventos agendados';
+  const urgV=S.venc.filter(v=>{const d=du(v.fecha);return d>=0&&d<=7;}).length;
+  document.getElementById('hw-vcount').textContent=urgV;
+  const hmbv=document.getElementById('hmod-vbadge');
+  if(urgV>0){hmbv.textContent=urgV;hmbv.style.display='block';}else{hmbv.style.display='none';}
+
+  // Eventos de hoy
+  const evList=document.getElementById('home-evlist');
+  const catDot={trabajo:'var(--accent)',personal:'var(--green)',venc:'var(--red)',feriado:'var(--amber)',otro:'var(--blue)'};
+  if(!todayEvs.length){
+    evList.innerHTML='<div style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin eventos hoy</div>';
+  }else{
+    evList.innerHTML=todayEvs.sort((a,b)=>a.hora.localeCompare(b.hora)).map(e=>`
+      <div class="hev" onclick="sw('agenda')">
+        <div class="hev-dot" style="background:${catDot[e.cat]||catDot.otro}"></div>
+        <div class="hev-time">${e.hora}</div>
+        <div class="hev-name">${e.titulo}</div>
+      </div>`).join('');
+  }
+
+  // Vencimientos próximos
+  const vList=document.getElementById('home-vlist');
+  const proxV=S.venc.filter(v=>du(v.fecha)>=0).sort((a,b)=>a.fecha.localeCompare(b.fecha)).slice(0,4);
+  if(!proxV.length){
+    vList.innerHTML='<div style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin vencimientos</div>';
+  }else{
+    vList.innerHTML=proxV.map(v=>{
+      const d=du(v.fecha);
+      const cls=d<=3?'urg':d<=14?'prx':'ok';
+      const lbl=d===0?'hoy':d+'d';
+      return`<div class="hvenc" onclick="sw('venc')">
+        <div class="hvenc-days ${cls}">${lbl}</div>
+        <div class="hvenc-info"><div class="hvenc-name">${v.nombre}</div><div class="hvenc-cat">${v.cat}</div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function getWeekNum(d){
+  const onejan=new Date(d.getFullYear(),0,1);
+  return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7);
+}
+
+// ══════════════════════════════════════════
+// BÓVEDA PRIVADA
+// ══════════════════════════════════════════
+let bovPinBuffer='';
+let bovUnlocked=false;
+let bovCurNota=null;
+
+function openBoveda(){
+  // Si ya está desbloqueada, ir directo al panel
+  if(bovUnlocked){
+    _enterBovPanel();
+    return;
+  }
+  // Si no hay PIN configurado, mostrar setup
+  const hasPin=localStorage.getItem('ws_bov_pin');
+  if(!hasPin){
+    _showBovSetup();
+  }else{
+    _showBovPin();
+  }
+}
+
+function _showBovPin(){
+  bovPinBuffer='';
+  document.getElementById('boveda-lock').classList.add('open');
+  document.getElementById('bov-pin-view').style.display='block';
+  document.getElementById('bov-setup-view').classList.remove('show');
+  document.getElementById('bov-lock-title').textContent='Bóveda privada';
+  document.getElementById('bov-lock-sub').textContent='Ingresá tu PIN de 4 dígitos';
+  document.getElementById('bov-err').textContent='';
+  _updPinDots();
+}
+
+function _showBovSetup(){
+  bovPinBuffer='';
+  document.getElementById('boveda-lock').classList.add('open');
+  document.getElementById('bov-pin-view').style.display='none';
+  document.getElementById('bov-setup-view').classList.add('show');
+  document.getElementById('bov-lock-title').textContent='Nueva bóveda';
+  document.getElementById('bov-lock-sub').textContent='Creá tu PIN de acceso privado';
+  document.getElementById('bov-setup-err').textContent='';
+  setTimeout(()=>document.getElementById('bov-setup-pin').focus(),100);
+}
+
+function closeBoveda(){
+  document.getElementById('boveda-lock').classList.remove('open');
+  // Volver a home si estamos en p-boveda sin desbloquear
+  if(!bovUnlocked){sw('home');}
+}
+
+function bovPin(n){
+  if(bovPinBuffer.length>=4)return;
+  bovPinBuffer+=n;
+  _updPinDots();
+  if(bovPinBuffer.length===4)setTimeout(_checkBovPin,120);
+}
+
+function bovDel(){
+  bovPinBuffer=bovPinBuffer.slice(0,-1);
+  _updPinDots();
+  document.getElementById('bov-err').textContent='';
+}
+
+function _updPinDots(){
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('bpd'+i);
+    dot.classList.toggle('filled',i<bovPinBuffer.length);
+    dot.classList.remove('wrong');
+  }
+}
+
+function _checkBovPin(){
+  const stored=localStorage.getItem('ws_bov_pin');
+  if(bovPinBuffer===stored){
+    bovUnlocked=true;
+    document.getElementById('boveda-lock').classList.remove('open');
+    _enterBovPanel();
+  }else{
+    document.getElementById('bov-err').textContent='PIN incorrecto, intentá de nuevo.';
+    for(let i=0;i<4;i++)document.getElementById('bpd'+i).classList.add('wrong');
+    setTimeout(()=>{bovPinBuffer='';_updPinDots();},900);
+  }
+}
+
+function bovSetupConfirm(){
+  const p1=document.getElementById('bov-setup-pin').value;
+  const p2=document.getElementById('bov-setup-pin2').value;
+  const errEl=document.getElementById('bov-setup-err');
+  if(!/^\d{4}$/.test(p1)){errEl.textContent='El PIN debe tener exactamente 4 dígitos.';return;}
+  if(p1!==p2){errEl.textContent='Los PINs no coinciden.';return;}
+  localStorage.setItem('ws_bov_pin',p1);
+  bovUnlocked=true;
+  document.getElementById('boveda-lock').classList.remove('open');
+  _enterBovPanel();
+  toast('Bóveda creada 🔒');
+}
+
+function _enterBovPanel(){
+  // Activar panel sin pasar por sw() para no re-triggear openBoveda
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-boveda').classList.add('active');
+  const nb=document.getElementById('n-boveda');if(nb)nb.classList.add('active');
+  document.getElementById('bov-new-btn').style.display='inline-flex';
+  document.getElementById('bov-locked-msg').style.display='none';
+  document.getElementById('bov-ttl').style.display='block';
+  document.getElementById('bov-body').style.display='block';
+  document.getElementById('bov-actions').style.display='flex';
+  rnBovNotas();
+}
+
+function bovLockOut(){
+  bovUnlocked=false;
+  bovCurNota=null;
+  document.getElementById('bov-locked-msg').style.display='flex';
+  document.getElementById('bov-ttl').style.display='none';
+  document.getElementById('bov-body').style.display='none';
+  document.getElementById('bov-actions').style.display='none';
+  document.getElementById('bov-new-btn').style.display='none';
+  document.getElementById('bov-list').innerHTML='';
+  sw('home');
+  toast('Bóveda bloqueada 🔒');
+}
+
+function loadBovNotas(){
+  try{return JSON.parse(localStorage.getItem('ws_bov_notas')||'[]');}catch(e){return[];}
+}
+function saveBovNotas(notas){localStorage.setItem('ws_bov_notas',JSON.stringify(notas));}
+
+function rnBovNotas(){
+  const notas=loadBovNotas().sort((a,b)=>(b.updated||0)-(a.updated||0));
+  const list=document.getElementById('bov-list');
+  if(!notas.length){
+    list.innerHTML='<div style="padding:16px 12px;font-family:var(--fm);font-size:11px;color:var(--txt3);text-align:center">Sin notas privadas</div>';
+    return;
+  }
+  list.innerHTML=notas.map(n=>`
+    <div class="bov-item${bovCurNota===n.id?' active':''}" onclick="openBovNota('${n.id}')">
+      <div class="bov-it">${n.titulo||'Sin título'}</div>
+      <div class="bov-ip">${(n.body||'').slice(0,45)}</div>
+    </div>`).join('');
+}
+
+function newBovNota(){
+  if(!bovUnlocked)return;
+  const n={id:uid(),titulo:'',body:'',updated:Date.now()};
+  const notas=loadBovNotas();notas.unshift(n);saveBovNotas(notas);
+  bovCurNota=n.id;rnBovNotas();openBovNota(n.id);
+  document.getElementById('bov-ttl').focus();
+}
+
+function openBovNota(id){
+  if(!bovUnlocked)return;
+  bovCurNota=id;
+  const n=loadBovNotas().find(n=>n.id===id);if(!n)return;
+  document.getElementById('bov-ttl').value=n.titulo||'';
+  document.getElementById('bov-body').value=n.body||'';
+  document.getElementById('bov-meta').textContent=n.updated?'Guardado: '+new Date(n.updated).toLocaleString('es-UY'):'';
+  rnBovNotas();
+}
+
+function saveBovNota(){
+  if(!bovCurNota||!bovUnlocked)return;
+  const notas=loadBovNotas();
+  const n=notas.find(n=>n.id===bovCurNota);if(!n)return;
+  n.titulo=document.getElementById('bov-ttl').value;
+  n.body=document.getElementById('bov-body').value;
+  n.updated=Date.now();
+  saveBovNotas(notas);
+  document.getElementById('bov-meta').textContent='Guardado: '+new Date().toLocaleString('es-UY');
+  rnBovNotas();
+}
+
+function delBovNota(){
+  if(!bovCurNota||!bovUnlocked)return;
+  if(!confirm('¿Eliminar esta nota privada? No se puede deshacer.'))return;
+  let notas=loadBovNotas().filter(n=>n.id!==bovCurNota);
+  saveBovNotas(notas);
+  bovCurNota=null;
+  document.getElementById('bov-ttl').value='';
+  document.getElementById('bov-body').value='';
+  document.getElementById('bov-meta').textContent='';
+  rnBovNotas();
+  toast('Nota eliminada');
+}
+
+// Cambiar PIN desde config (hook para el futuro)
+function changeBovPin(){
+  localStorage.removeItem('ws_bov_pin');
+  bovUnlocked=false;
+  _showBovSetup();
+}
+
+// ══════════════════════════════════════════
 // SQL SETUP
 // ??????????????????????????????????????????
 console.log('%c WORKSPACE  SQL para Supabase','color:#5b4fff;font-weight:bold;font-size:13px');

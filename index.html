@@ -845,7 +845,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
       <div class="phdr"><div class="pttl">Configuración</div></div>
       <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;max-width:500px">
         <div class="cfg-section">
-          <div class="cfg-lbl">Asistente IA  Gemini API key</div>
+          <div class="cfg-lbl">Asistente IA</div>
           <input type="password" class="fi" id="cfg-api" placeholder="AIza..." oninput="saveConf()">
           <div style="font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:5px">Solo se guarda en este dispositivo. Necesaria para usar el asistente.</div>
         </div>
@@ -981,9 +981,16 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 // ??????????????????????????????????????????
 const SB_URL='https://kvnroqvibthetdccmrrf.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2bnJvcXZpYnRoZXRkY2NtcnJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2ODMxNzAsImV4cCI6MjA5NjI1OTE3MH0.IPqSJvNtns_r9i1s6sIbyKxsOam6j3afZh64fXA_GbI';
-// Hash SHA-256 de la contraseña admin (nunca en texto plano)
 const ADMIN_HASH='bfb199b0c132eac87a382234930a3dab050637f07045508daf29c1765522a0cd';
 const SALT='WSP2025';
+
+// Utils — definidas primero para que estén disponibles en todo el script
+const DY=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MO=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const dk=d=>d.toISOString().slice(0,10);
+const isT=d=>dk(d)===dk(new Date());
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const CC=(c,p)=>({t:['var(--accent-dim)','var(--accent-border)','var(--accent)'],p:['var(--green-dim)','var(--green-border)','var(--green)'],v:['var(--red-dim)','var(--red-border)','var(--red)'],f:['var(--amber-dim)','var(--amber-border)','var(--amber)'],o:['var(--blue-dim)','var(--blue-border)','var(--blue)']})[c]?.[p]||['var(--blue-dim)','var(--blue-border)','var(--blue)'][p];
 
 // ??????????????????????????????????????????
 // STATE
@@ -1238,7 +1245,6 @@ async function enterApp(token,user){
   fetchLiveFX(false);
   initDrop();
   // Briefing diferido  no invasivo, solo si hay algo relevante
-  setTimeout(()=>checkBriefing(),2000);
 }
 async function doLogout(){
   const token=getToken();
@@ -1318,16 +1324,10 @@ function swv(v,btn){
 }
 function rcv(){if(S.view==='day')renderDay();else if(S.view==='week')renderWeek();else renderMonth();}
 
-// ??????????????????????????????????????????
+// ══════════════════════════════════════════
 // UTILS
-// ??????????????????????????????????????????
-const DY=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const MO=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const dk=d=>d.toISOString().slice(0,10);
-const isT=d=>dk(d)===dk(new Date());
+// ══════════════════════════════════════════
 const evDay=d=>S.events.filter(e=>e.fecha===dk(d)).sort((a,b)=>a.hora.localeCompare(b.hora));
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const CC=(c,p)=>({t:['var(--accent-dim)','var(--accent-border)','var(--accent)'],p:['var(--green-dim)','var(--green-border)','var(--green)'],v:['var(--red-dim)','var(--red-border)','var(--red)'],f:['var(--amber-dim)','var(--amber-border)','var(--amber)'],o:['var(--blue-dim)','var(--blue-border)','var(--blue)']})[c]?.[p]||['var(--blue-dim)','var(--blue-border)','var(--blue)'][p];
 function catClass(c){return{trabajo:'c-t',personal:'c-p',venc:'c-v',feriado:'c-f',otro:'c-o'}[c]||'c-o';}
 
 // ??????????????????????????????????????????
@@ -1895,49 +1895,6 @@ async function sendIA(){
 }
 
 // ??????????????????????????????????????????
-// BRIEFING  chip discreto en topbar
-// Aparece 1 vez por día si hay cosas relevantes
-// El usuario decide si lo quiere ver
-// ??????????????????????????????????????????
-async function checkBriefing(){
-  if(!S.cfg.apikey)return;
-  const today=dk(new Date());
-  const lastBriefing=localStorage.getItem('ws_briefing_date');
-  if(lastBriefing===today)return; // Solo 1 vez por día
-  const todayEvs=S.events.filter(e=>e.fecha===today&&e.cat!=='feriado');
-  const urgVenc=S.venc.filter(v=>du(v.fecha)>=0&&du(v.fecha)<=3);
-  if(!todayEvs.length&&!urgVenc.length)return; // Nada relevante, no mostrar
-  // Armar resumen del chip
-  const parts=[];
-  if(todayEvs.length)parts.push(todayEvs.length+(todayEvs.length===1?' evento':' eventos'));
-  if(urgVenc.length)parts.push(urgVenc.length+(urgVenc.length===1?' venc. urgente':' venc. urgentes'));
-  document.getElementById('briefing-txt').textContent='? Hoy: '+parts.join(' · ');
-  localStorage.setItem('ws_briefing_date',today);
-}
-
-async function openBriefing(){
-  sw('ia');
-  const today=dk(new Date());
-  appendIA('user','Dame un resumen rápido de lo importante para hoy y esta semana.');
-  S.iaHist.push({role:'user',content:wsContext()+'\n\nUsuario: Dame un resumen rápido de lo importante para hoy y esta semana. Sé conciso.'});
-  const typing=appendIATyping();
-  try{
-    const GROQ_KEY='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';
-    const msgs=S.iaHist.slice(-6).filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,content:m.content}));
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:400,messages:[{role:'system',content:IA_SYS},...msgs]}),
-    });
-    const data=await res.json();
-    if(data.error)throw new Error(data.error.message);
-    const reply=data.choices?.[0]?.message?.content||'Sin datos suficientes para el resumen.';
-    typing.remove();
-    appendIA('bot',reply.replace(/ACTION_JSON:.+$/s,'').trim());
-    S.iaHist.push({role:'assistant',content:reply});
-  }catch(e){typing.remove();appendIA('bot','Error al generar el resumen.');}
-}
-
 // ??????????????????????????????????????????
 // CONFIG
 // ??????????????????????????????????????????

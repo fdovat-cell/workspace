@@ -118,13 +118,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .tbtn:hover{background:var(--bg3);color:var(--txt)}
 
 /* Briefing chip */
-#briefing-chip{display:none;align-items:center;gap:5px;background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:20px;padding:3px 10px;cursor:pointer;transition:var(--tr);max-width:200px;overflow:hidden}
-#briefing-chip:hover{background:var(--accent-border)}
-#briefing-chip span{font-family:var(--fm);font-size:10px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#briefing-chip.show{display:flex}
 
 #layout{display:none;flex:1;overflow:hidden}
 #sidebar{width:var(--sb);background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px;flex-shrink:0}
+#layout.home-mode #sidebar{display:none}
 .nbtn{width:40px;height:40px;border-radius:10px;background:transparent;border:none;color:var(--txt3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);position:relative}
 .nbtn svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nbtn:hover{background:var(--bg3);color:var(--txt2)}
@@ -408,7 +405,13 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
   .auth-card{padding:26px 18px}
   #modal{padding:18px 13px}
   .fr2{grid-template-columns:1fr}
-  #briefing-chip{max-width:120px}
+  /* Home mobile */
+  .home-widgets{grid-template-columns:1fr 1fr}
+  .home-modules{grid-template-columns:repeat(2,1fr)}
+  .home-bottom{grid-template-columns:1fr}
+  .hw-val{font-size:20px}
+  .home-body{padding:14px 14px;gap:12px}
+  .home-greeting h1{font-size:17px}
 }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -505,9 +508,6 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     <div class="user-name" id="user-name"></div>
   </div>
   <div class="tspc"></div>
-  <div id="briefing-chip" onclick="openBriefing()">
-    <span id="briefing-txt">? Ver resumen</span>
-  </div>
   <div id="top-clock"></div>
   <button class="tbtn" id="theme-btn" onclick="toggleTheme()" title="Tema">?</button>
   <button class="tbtn" onclick="openAddEvent()" title="Nuevo evento" style="font-size:18px;line-height:1">+</button>
@@ -1251,6 +1251,7 @@ function showUserMenu(){sw('config');}
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".nbtn").forEach(b=>b.classList.remove("active"));
   document.getElementById("p-home").classList.add("active");
+  document.getElementById("layout").classList.add("home-mode");
   var nh=document.getElementById("n-home");if(nh)nh.classList.add("active");
   renderHome();
   fetchClima();
@@ -1299,6 +1300,8 @@ function sw(id){
   document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
   document.getElementById('p-'+id).classList.add('active');
   const nb=document.getElementById('n-'+id);if(nb)nb.classList.add('active');
+  // Sidebar: ocultar en home, mostrar en el resto
+  document.getElementById('layout').classList.toggle('home-mode', id==='home');
   if(id==='agenda')rcv();
   if(id==='venc')rnVenc();
   if(id==='notas')rnNotas();
@@ -1808,61 +1811,6 @@ Podés ejecutar varias acciones juntas: ACTION_JSON:[{accion1},{accion2}]
 Para consultas sin acción concreta (¿qué tengo hoy?, resúmenes, preguntas), respondé normalmente sin ACTION_JSON.
 Sé útil pero no generes acciones que el usuario no pidió.`;
 
-async function closeGeminiOb(){const el=document.getElementById('gemini-ob');if(el)el.remove();}
-
-async function getGoogleToken(){
-  return new Promise((resolve,reject)=>{
-    if(!window.google){reject(new Error('Google Identity no cargó'));return;}
-    const client=google.accounts.oauth2.initTokenClient({
-      client_id:'410758524022-compute@developer.gserviceaccount.com',
-      scope:'https://www.googleapis.com/auth/generative-language',
-      callback:(resp)=>{
-        if(resp.error){reject(new Error(resp.error));return;}
-        S.cfg.apikey=resp.access_token;
-        S.cfg.apikeyExp=Date.now()+(resp.expires_in-60)*1000;
-        saveLocal();
-        resolve(resp.access_token);
-      }
-    });
-    client.requestAccessToken();
-  });
-}
-
-async function ensureGeminiToken(){
-  if(S.cfg.apikey && S.cfg.apikeyExp && Date.now()<S.cfg.apikeyExp){
-    return S.cfg.apikey;
-  }
-  return await getGoogleToken();
-}
-
-function showGeminiOnboarding(){
-  if(document.getElementById('gemini-ob'))return;
-  const ov=document.createElement('div');
-  ov.id='gemini-ob';
-  ov.style.cssText='position:fixed;inset:0;background:#00000088;z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  const box=document.createElement('div');
-  box.style.cssText='background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:360px;max-width:94vw;box-shadow:var(--shadow-lg);text-align:center';
-  box.innerHTML='<div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:10px">Activar Asistente IA</div>'
-    +'<div style="font-family:var(--fm);font-size:12px;color:var(--txt3);line-height:1.7;margin-bottom:20px">El asistente usa Gemini de Google (gratis).<br>Solo necesitas conectar tu cuenta Google una vez.</div>'
-    +'<button id="gemini-google-btn" style="background:#4285f4;border:none;color:#fff;border-radius:9px;padding:12px 24px;font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px">Conectar con Google</button>'
-    +'<div id="gemini-err" style="font-family:var(--fm);font-size:11px;color:var(--red);display:none;margin-top:8px"></div>'
-    +'<button id="gemini-cancel" style="background:none;border:none;color:var(--txt3);font-family:var(--fm);font-size:11px;cursor:pointer;margin-top:4px">Cancelar</button>';
-  ov.appendChild(box);
-  document.body.appendChild(ov);
-  document.getElementById('gemini-cancel').onclick=closeGeminiOb;
-  ov.addEventListener('click',e=>{if(e.target===ov)closeGeminiOb();});
-  document.getElementById('gemini-google-btn').onclick=async()=>{
-    try{
-      await getGoogleToken();
-      closeGeminiOb();
-      toast('Gemini conectado');
-      sendIA();
-    }catch(e){
-      document.getElementById('gemini-err').style.display='block';
-      document.getElementById('gemini-err').textContent='Error: '+e.message;
-    }
-  };
-}
 async function webSearch(query){
   try{
     const r=await fetch('https://google.serper.dev/search',{
@@ -1875,17 +1823,18 @@ async function webSearch(query){
     return d.organic.slice(0,4).map(x=>'- '+x.title+': '+x.snippet).join('\n');
   }catch(e){return 'Error al buscar: '+e.message;}
 }
+
 async function sendIA(){
-  const inp=document.getElementById('ia-inp');const text=inp.value.trim();if(!text)return;
-  const apikey=S.cfg.apikey;
-  if(!apikey){showGeminiOnboarding();return;}
+  const inp=document.getElementById('ia-inp');
+  const text=inp.value.trim();
+  if(!text)return;
   inp.value='';
   appendIA('user',text);
   S.iaHist.push({role:'user',content:wsContext()+'\n\nUsuario: '+text});
   const typing=appendIATyping();
   try{
     const GROQ_KEY='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';
-    const SEARCH_KEYWORDS=['noticias','partido','juego','clima','tiempo','hoy','resultado','precio','dolar','euro','quien','que paso','cuando','donde'];
+    const SEARCH_KEYWORDS=['noticias','partido','juego','clima','tiempo','resultado','precio','dolar','euro','quien','que paso','cuando','donde'];
     const needsSearch=SEARCH_KEYWORDS.some(k=>text.toLowerCase().includes(k));
     let searchCtx='';
     if(needsSearch){
@@ -1894,16 +1843,15 @@ async function sendIA(){
     }
     const msgs=S.iaHist.slice(-12).filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,content:m.content}));
     const lastMsg=msgs[msgs.length-1];
-    if(lastMsg&&lastMsg.role==='user')lastMsg.content+=searchCtx;
+    if(lastMsg&&lastMsg.role==='user'&&searchCtx)lastMsg.content+=searchCtx;
     const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'system',content:IA_SYS},...msgs]}),
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:800,messages:[{role:'system',content:IA_SYS},...msgs]}),
     });
     const data=await res.json();
-    if(data.error){throw new Error(data.error.message||'Error Groq');}
+    if(data.error){throw new Error(data.error.message||JSON.stringify(data.error));}
     let reply=data.choices?.[0]?.message?.content||'Sin respuesta';
-    // Parse actions
     const actions=[];
     const match=reply.match(/ACTION_JSON:\[(.+?)\](?:\s*$)?/s);
     if(match){
@@ -1911,13 +1859,13 @@ async function sendIA(){
         const parsed=JSON.parse('['+match[1]+']');
         parsed.forEach(a=>{
           let label='';
-          if(a.type==='add_event')label='? Agregar evento: '+a.titulo;
-          else if(a.type==='edit_event')label='? Actualizar evento';
-          else if(a.type==='del_event')label='? Eliminar evento';
-          else if(a.type==='add_venc')label='? Agregar vencimiento: '+a.nombre;
-          else if(a.type==='add_nota')label='? Crear nota: '+a.titulo;
-          else if(a.type==='add_sheet')label='? Poner datos en planilla';
-          else if(a.type==='nav')label='? Ir a '+a.panel;
+          if(a.type==='add_event')label='📅 Agregar evento: '+a.titulo;
+          else if(a.type==='edit_event')label='✏️ Actualizar evento';
+          else if(a.type==='del_event')label='🗑 Eliminar evento';
+          else if(a.type==='add_venc')label='⏰ Agregar vencimiento: '+a.nombre;
+          else if(a.type==='add_nota')label='📝 Crear nota: '+a.titulo;
+          else if(a.type==='add_sheet')label='📊 Datos en planilla';
+          else if(a.type==='nav')label='→ Ir a '+a.panel;
           if(label)actions.push({...a,label});
         });
       }catch(e){}
@@ -1925,7 +1873,6 @@ async function sendIA(){
     }
     typing.remove();
     if(S.cfg.iaDirectMode&&actions.length){
-      // Modo directo: ejecutar sin botones
       appendIA('bot',reply||'Listo.');
       actions.forEach(a=>execAction(a));
     }else{
@@ -1937,13 +1884,13 @@ async function sendIA(){
     typing.remove();
     const msg=e.message||'';
     let errMsg='Error al conectar con la IA.';
-    if(msg.includes('API_KEY')||msg.includes('key')||msg.includes('401'))errMsg='API key inválida. Revisá que la copiaste bien desde Google AI Studio.';
-    else if(msg.includes('quota')||msg.includes('429'))errMsg='Límite de uso alcanzado. Esperá un momento e intentá de nuevo.';
-    else if(msg.includes('network')||msg.includes('fetch'))errMsg='Sin conexión a internet.';
+    if(msg.includes('401'))errMsg='Error de autenticación con la IA.';
+    else if(msg.includes('429'))errMsg='Límite de requests alcanzado, esperá un momento.';
+    else if(msg.includes('network')||msg.includes('fetch'))errMsg='Sin conexión.';
     else if(msg)errMsg='Error: '+msg;
     const errEl=appendIA('bot',errMsg);
     errEl.style.color='var(--red)';
-    console.error('Gemini error:',e);
+    console.error('IA error:',e);
   }
 }
 
@@ -1965,12 +1912,10 @@ async function checkBriefing(){
   if(todayEvs.length)parts.push(todayEvs.length+(todayEvs.length===1?' evento':' eventos'));
   if(urgVenc.length)parts.push(urgVenc.length+(urgVenc.length===1?' venc. urgente':' venc. urgentes'));
   document.getElementById('briefing-txt').textContent='? Hoy: '+parts.join(' · ');
-  document.getElementById('briefing-chip').classList.add('show');
   localStorage.setItem('ws_briefing_date',today);
 }
 
 async function openBriefing(){
-  document.getElementById('briefing-chip').classList.remove('show');
   sw('ia');
   if(!S.cfg.apikey){appendIA('sys','Configurá tu API key para el briefing automático.');return;}
   const today=dk(new Date());

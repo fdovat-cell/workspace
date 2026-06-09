@@ -282,14 +282,29 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .toggle-sw::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:var(--tr)}
 .toggle-sw.on::after{transform:translateX(14px)}
 
-/* SHEET */
-.sth{background:var(--bg3);border:1px solid var(--line);padding:4px 7px;color:var(--txt3);font-weight:400;font-size:10px;text-align:center;font-family:var(--fm);min-width:34px;position:sticky;top:0;z-index:1}
-.srn{background:var(--bg3);border:1px solid var(--line);padding:4px 7px;color:var(--txt3);text-align:center;font-size:10px;font-family:var(--fm);min-width:34px}
-.std{border:1px solid var(--line);padding:0;position:relative;min-width:98px}
-.si{width:100%;background:transparent;border:none;color:var(--txt);padding:4px 6px;font-family:var(--fm);font-size:12px;outline:none;display:block}
-.si:focus{background:var(--accent-dim)}
-.sheet-drop-zone{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg2);opacity:0;pointer-events:none;transition:opacity .2s;z-index:10;border:2px dashed var(--accent-border);border-radius:var(--radius-lg);margin:20px}
-.sheet-drop-zone.show{opacity:1;pointer-events:all}
+/* EXCEL VIEWER */
+#excel-modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#excel-modal-ov.open{display:flex}
+#excel-modal{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-xl);width:92vw;max-width:1100px;height:88vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;animation:fadeUp .18s ease both}
+.xm-hdr{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--bg2)}
+.xm-ttl{font-family:var(--fh);font-size:14px;font-weight:700;color:var(--txt);flex:1}
+.xm-tabs{display:flex;gap:0;padding:0 18px;background:var(--bg2);border-bottom:1px solid var(--line);flex-shrink:0;overflow-x:auto}
+.xm-tab{font-family:var(--fm);font-size:11px;padding:7px 14px;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:var(--tr);white-space:nowrap}
+.xm-tab:hover{color:var(--txt2)}
+.xm-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.xm-body{flex:1;overflow:auto;padding:0}
+.xm-tbl-wrap{overflow:auto;width:100%;height:100%}
+.xm-tbl{border-collapse:collapse;font-size:12px;font-family:var(--fm)}
+.xm-tbl th{background:var(--bg3);border:1px solid var(--line);padding:4px 10px;color:var(--txt3);font-weight:400;font-size:10px;text-align:center;position:sticky;top:0;z-index:1;white-space:nowrap}
+.xm-tbl th.rn{position:sticky;left:0;top:0;z-index:2}
+.xm-tbl td{border:1px solid var(--line);padding:4px 10px;color:var(--txt);white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.xm-tbl td.rn{background:var(--bg3);color:var(--txt3);text-align:center;font-size:10px;position:sticky;left:0;z-index:1}
+#excel-drop-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:100%;color:var(--txt3);cursor:pointer}
+#excel-drop-zone .drop-icon{font-size:44px;opacity:.25}
+#excel-drop-zone .drop-ttl{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--txt2)}
+#excel-drop-zone .drop-sub{font-family:var(--fm);font-size:11px;line-height:1.7;text-align:center}
+#excel-drop-zone .drop-btns{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.xdrop-hover{background:var(--accent-dim)!important}
 
 /* FILE IMPORT overlay */
 .drop-overlay{position:fixed;inset:0;background:var(--accent-dim);border:3px dashed var(--accent-border);z-index:5000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
@@ -574,7 +589,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     </button>
     <button class="nbtn" onclick="sw('sheet')" id="n-sheet">
       <svg width="18" height="18" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-      <span class="nttp">Planilla</span>
+      <span class="nttp">Visor Excel</span>
     </button>
     <button class="nbtn" onclick="sw('notas')" id="n-notas">
       <svg width="18" height="18" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -641,7 +656,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
           </div>
           <div class="hmod" onclick="sw('sheet')">
             <div class="hmod-icon sheet"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></div>
-            <div><div class="hmod-name">Planilla</div><div class="hmod-hint">Datos · CSV · Excel</div></div>
+            <div><div class="hmod-name">Visor Excel</div><div class="hmod-hint">Abrí XLSX · CSV</div></div>
           </div>
           <div class="hmod" onclick="sw('browser')">
             <div class="hmod-icon browser"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
@@ -798,19 +813,55 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
       </div>
     </div>
 
-    <!-- SHEET -->
+    <!-- VISOR EXCEL -->
     <div class="panel" id="p-sheet">
       <div class="phdr">
-        <div class="pttl">Planilla</div>
+        <div class="pttl">Visor Excel</div>
         <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="badd" onclick="impSheetFile()" style="font-size:11px;padding:4px 10px;background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">↑ Importar CSV/XLSX</button>
-          <button class="badd" onclick="expXLSX()" style="font-size:11px;padding:4px 10px">↓ Excel</button>
-          <button class="badd" onclick="expCSV()" style="font-size:11px;padding:4px 10px;background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">↓ CSV</button>
-          <button class="badd" onclick="clrSheet()" style="font-size:11px;padding:4px 10px;background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">Limpiar</button>
+          <button class="badd" onclick="openExcelViewer()" style="font-size:11px;padding:4px 13px">↑ Abrir archivo</button>
         </div>
       </div>
-      <div style="flex:1;overflow:auto;position:relative"><div id="shc" style="min-width:max-content"></div></div>
-      <input type="file" id="sheet-file-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="onSheetFileChosen(event)">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;color:var(--txt3)">
+        <div style="font-size:52px;opacity:.18">📊</div>
+        <div style="font-family:var(--fh);font-size:16px;font-weight:700;color:var(--txt2)">Visor de archivos Excel</div>
+        <div style="font-family:var(--fm);font-size:12px;line-height:1.8;text-align:center;max-width:340px">
+          Abrí archivos <b>.xlsx</b> o <b>.csv</b> desde tu computadora o desde Google Drive.<br>
+          El archivo se visualiza sin modificarlo — tus datos no se guardan en esta app.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+          <button class="badd" onclick="openExcelViewer()" style="padding:9px 20px;font-size:12px">
+            📁 Desde mi PC
+          </button>
+          <button class="badd" onclick="openFromDrive()" style="padding:9px 20px;font-size:12px;background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">
+            ☁ Desde Google Drive
+          </button>
+        </div>
+        <div style="font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:4px">También podés arrastrar un archivo encima de esta pantalla</div>
+      </div>
+      <input type="file" id="excel-file-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="onExcelFileChosen(event)">
+    </div>
+
+    <!-- EXCEL MODAL VIEWER -->
+    <div id="excel-modal-ov" onclick="if(event.target===this)closeExcelViewer()">
+      <div id="excel-modal">
+        <div class="xm-hdr">
+          <div class="xm-ttl" id="xm-filename">Sin archivo</div>
+          <div style="font-family:var(--fm);font-size:10px;color:var(--txt3)" id="xm-info"></div>
+          <button onclick="closeExcelViewer()" style="background:transparent;border:1px solid var(--line2);color:var(--txt2);border-radius:7px;padding:4px 12px;font-family:var(--fm);font-size:11px;cursor:pointer;margin-left:10px">Cerrar</button>
+        </div>
+        <div class="xm-tabs" id="xm-tabs"></div>
+        <div class="xm-body" id="xm-body">
+          <div id="excel-drop-zone">
+            <div class="drop-icon">📊</div>
+            <div class="drop-ttl">Arrastrá un archivo acá</div>
+            <div class="drop-sub">Soporta .xlsx, .xls y .csv<br>El archivo se visualiza localmente, sin subir a ningún servidor</div>
+            <div class="drop-btns">
+              <button class="badd" onclick="openExcelViewer()" style="padding:7px 16px">↑ Elegir archivo</button>
+              <button class="badd" onclick="openFromDrive()" style="padding:7px 16px;background:var(--bg3);color:var(--txt2);border:1px solid var(--line)">☁ Google Drive</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- NOTAS -->
@@ -1686,69 +1737,71 @@ async function fetchLiveFX(showToast=false){
 }
 
 // ═
-// PLANILLA  importar CSV/XLSX
+// VISOR EXCEL
 // ═
-const COLS=12,ROWS=30;
-function initSheet(){if(!S.sheetData.length)S.sheetData=Array.from({length:ROWS},()=>Array(COLS).fill(''));}
-function rnSheet(){
-  initSheet();const c=document.getElementById('shc');
-  const cols='ABCDEFGHIJKL'.split('');
-  let h='<table style="border-collapse:collapse"><tr><th class="sth" style="position:sticky;top:0;left:0;z-index:2"></th>';
-  cols.forEach(l=>h+=`<th class="sth">${l}</th>`);h+='</tr>';
-  for(let r=0;r<ROWS;r++){
-    h+=`<tr><td class="srn">${r+1}</td>`;
-    for(let col=0;col<COLS;col++){const v=S.sheetData[r]?.[col]||'';h+=`<td class="std"><input type="text" class="si" value="${esc(v)}" onblur="sSt(${r},${col},this.value)" onkeydown="sKey(event,${r},${col})" data-r="${r}" data-c="${col}"></td>`;}
-    h+='</tr>';
-  }
-  h+='</table>';c.innerHTML=h;
-}
+let excelWB=null;
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
-function sSt(r,c,v){if(!S.sheetData[r])S.sheetData[r]=Array(COLS).fill('');S.sheetData[r][c]=v;saveLocal();}
-function sKey(e,r,c){if(e.key==='Enter'){e.preventDefault();fcell(r+1,c);}if(e.key==='Tab'){e.preventDefault();fcell(r,c+(e.shiftKey?-1:1));}}
-function fcell(r,c){const i=document.querySelector(`[data-r="${r}"][data-c="${c}"]`);if(i)i.focus();}
-function expCSV(){const rows=S.sheetData.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(','));const b=new Blob([rows.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='planilla.csv';a.click();}
-function expXLSX(){
-  if(typeof XLSX==='undefined'){toast('Cargando librería');return;}
-  const ws=XLSX.utils.aoa_to_sheet(S.sheetData);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Planilla');
-  XLSX.writeFile(wb,'planilla.xlsx');
-  toast('Excel exportado ✓');
-}
-function clrSheet(){if(!confirm('¿Limpiar planilla?'))return;S.sheetData=Array.from({length:ROWS},()=>Array(COLS).fill(''));saveLocal();rnSheet();}
-function impSheetFile(){document.getElementById('sheet-file-inp').click();}
-function onSheetFileChosen(e){
-  const file=e.target.files[0];if(!file)return;
+function rnSheet(){}
+function openExcelViewer(){document.getElementById('excel-file-inp').click();}
+function openExcelModal(){document.getElementById('excel-modal-ov').classList.add('open');}
+function closeExcelViewer(){document.getElementById('excel-modal-ov').classList.remove('open');}
+function onExcelFileChosen(e){const file=e.target.files[0];if(!file)return;readExcelFile(file);e.target.value='';}
+function readExcelFile(file){
   const ext=file.name.split('.').pop().toLowerCase();
+  openExcelModal();
+  document.getElementById('xm-filename').textContent=file.name;
+  document.getElementById('xm-tabs').innerHTML='';
   if(ext==='csv'){
     const r=new FileReader();
     r.onload=ev=>{
-      const rows=ev.target.result.split('\n').map(row=>row.split(',').map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"')));
-      S.sheetData=Array.from({length:Math.max(ROWS,rows.length)},(_,i)=>{
-        const row=rows[i]||[];
-        return Array.from({length:Math.max(COLS,row.length)},(_,j)=>row[j]||'');
-      });
-      saveLocal();rnSheet();toast('CSV importado ✓');
+      const rows=ev.target.result.split(/\r?\n/).map(row=>{
+        const cells=[];let cur='',inQ=false;
+        for(let i=0;i<row.length;i++){const ch=row[i];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cells.push(cur);cur='';}else cur+=ch;}
+        cells.push(cur);return cells;
+      }).filter(r=>r.some(c=>c.trim()));
+      excelWB={sheets:{Sheet1:rows},names:['Sheet1']};
+      renderExcelSheet('Sheet1');
+      document.getElementById('xm-info').textContent=rows.length+' filas';
     };
     r.readAsText(file);
-  }else if(ext==='xlsx'||ext==='xls'){
+  }else{
     if(typeof XLSX==='undefined'){toast('Librería XLSX no disponible');return;}
     const r=new FileReader();
     r.onload=ev=>{
       const wb=XLSX.read(ev.target.result,{type:'binary'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      S.sheetData=Array.from({length:Math.max(ROWS,rows.length)},(_,i)=>{
-        const row=rows[i]||[];
-        return Array.from({length:Math.max(COLS,row.length)},(_,j)=>String(row[j]||''));
-      });
-      saveLocal();rnSheet();toast('Excel importado ✓');
+      excelWB={sheets:{},names:wb.SheetNames};
+      wb.SheetNames.forEach(n=>{excelWB.sheets[n]=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:'',raw:false});});
+      renderExcelSheet(wb.SheetNames[0]);
+      document.getElementById('xm-info').textContent=wb.SheetNames.length+' hoja'+(wb.SheetNames.length>1?'s':'');
     };
     r.readAsBinaryString(file);
   }
-  e.target.value='';
 }
-
+function renderExcelSheet(name){
+  if(!excelWB)return;
+  document.getElementById('xm-tabs').innerHTML=excelWB.names.map(n=>`<button class="xm-tab${n===name?' active':''}" onclick="renderExcelSheet(this.dataset.s)" data-s="${esc(n)}">${esc(n)}</button>`).join('');
+  const rows=excelWB.sheets[name]||[];
+  if(!rows.length){document.getElementById('xm-body').innerHTML='<div style="padding:30px;font-family:var(--fm);font-size:12px;color:var(--txt3);text-align:center">Hoja vacía</div>';return;}
+  const maxCols=Math.max(...rows.map(r=>r.length));
+  const colLetters=Array.from({length:maxCols},(_,i)=>{let n='',x=i;do{n=String.fromCharCode(65+(x%26))+n;x=Math.floor(x/26)-1;}while(x>=0);return n;});
+  let h='<div class="xm-tbl-wrap"><table class="xm-tbl"><thead><tr><th class="rn sth"></th>';
+  colLetters.forEach(l=>h+=`<th class="sth">${l}</th>`);h+='</tr></thead><tbody>';
+  rows.forEach((row,ri)=>{h+=`<tr><td class="rn">${ri+1}</td>`;for(let ci=0;ci<maxCols;ci++)h+=`<td title="${esc(String(row[ci]||''))}">${esc(String(row[ci]||''))}</td>`;h+='</tr>';});
+  h+='</tbody></table></div>';
+  document.getElementById('xm-body').innerHTML=h;
+}
+function openFromDrive(){window.open('https://drive.google.com','_blank');toast('Descargá el archivo de Drive y abrilo con "Desde mi PC"');}
+(function(){
+  function xlDrop(el){
+    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('xdrop-hover');});
+    el.addEventListener('dragleave',()=>el.classList.remove('xdrop-hover'));
+    el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('xdrop-hover');const file=e.dataTransfer.files[0];if(file&&/\.(xlsx|xls|csv)$/i.test(file.name))readExcelFile(file);else toast('Usá .xlsx, .xls o .csv');});
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    const p=document.getElementById('p-sheet');if(p)xlDrop(p);
+    const m=document.getElementById('excel-modal');if(m)xlDrop(m);
+  });
+})()
 // ═
 // NOTAS
 // ═
@@ -1756,13 +1809,15 @@ function rnNotas(){
   const q=document.getElementById('nsearch').value.toLowerCase();
   const notas=S.notas.filter(n=>!q||(n.titulo+n.body).toLowerCase().includes(q)).sort((a,b)=>(b.updated||0)-(a.updated||0));
   const list=document.getElementById('nlist');
-  if(!notas.length){list.innerHTML='<div style="padding:16px 10px;text-align:center;font-family:var(--fm);font-size:11px;color:var(--txt3)">Sin notas</div>';return;}
+  if(!notas.length){
+    list.innerHTML='<div style="padding:16px 10px;text-align:center;font-family:var(--fm);font-size:11px;color:var(--txt3)">Sin notas</div>';
+    return;
+  }
+  // Rebuild list without touching the editor — no recursive openNota call
   list.innerHTML=notas.map(n=>`<div class="nitem${S.curNota===n.id?' active':''}" onclick="openNota('${n.id}')"><div class="nit">${n.titulo||'Sin título'}</div><div class="nip">${(n.body||'').slice(0,50)}</div></div>`).join('');
-  if(!S.curNota&&notas.length)openNota(notas[0].id);
 }
 function notasIsMobile(){return window.innerWidth<=600;}
 function notasBack(){
-  // Volver a mostrar lista en mobile
   document.getElementById('nlist').style.display='';
   document.getElementById('notas-editor').style.display='none';
   document.getElementById('nback-btn').style.display='none';
@@ -1774,28 +1829,45 @@ function openNota(id){
   if(!n)return;
   document.getElementById('nttl').value=n.titulo||'';
   document.getElementById('nbody').value=n.body||'';
-  document.getElementById('nmeta').textContent=n.updated?'Guardado: '+new Date(n.updated).toLocaleString('es-UY'):'';
-  // Mobile: ocultar lista, mostrar editor
+  document.getElementById('nmeta').textContent=n.updated?'Guardado: '+new Date(n.updated).toLocaleString('es-UY'):'Nueva nota — empezá a escribir';
   if(notasIsMobile()){
     document.getElementById('nlist').style.display='none';
     document.getElementById('notas-editor').style.display='flex';
     document.getElementById('nback-btn').style.display='inline';
   }
-  rnNotas();
+  // Highlight active item in list without rebuilding
+  document.querySelectorAll('#nlist .nitem').forEach(el=>el.classList.toggle('active',el.getAttribute('onclick')===`openNota('${id}')`));
 }
 function newNota(){
   const n={id:uid(),titulo:'',body:'',updated:Date.now()};
-  S.notas.unshift(n);S.curNota=n.id;
-  saveLocal();rnNotas();openNota(n.id);
-  document.getElementById('nttl').focus();
+  S.notas.unshift(n);
+  S.curNota=n.id;
+  saveLocal();
+  rnNotas();      // rebuild list
+  openNota(n.id); // load into editor
+  setTimeout(()=>document.getElementById('nttl').focus(),50);
 }
+let _saveNotaTimer=null;
 function saveNota(){
-  const n=S.notas.find(n=>n.id===S.curNota);if(!n)return;
-  n.titulo=document.getElementById('nttl').value;
-  n.body=document.getElementById('nbody').value;
-  n.updated=Date.now();
-  document.getElementById('nmeta').textContent='Guardado: '+new Date().toLocaleString('es-UY');
-  saveLocal();rnNotas();
+  // Debounce: save 600ms after user stops typing
+  clearTimeout(_saveNotaTimer);
+  _saveNotaTimer=setTimeout(()=>{
+    const n=S.notas.find(n=>n.id===S.curNota);
+    if(!n)return;
+    n.titulo=document.getElementById('nttl').value;
+    n.body=document.getElementById('nbody').value;
+    n.updated=Date.now();
+    document.getElementById('nmeta').textContent='Guardado: '+new Date().toLocaleString('es-UY');
+    saveLocal();
+    // Only update the list item text, don't rebuild the whole list
+    const active=document.querySelector('#nlist .nitem.active');
+    if(active){
+      const t=active.querySelector('.nit');
+      const p=active.querySelector('.nip');
+      if(t)t.textContent=n.titulo||'Sin título';
+      if(p)p.textContent=(n.body||'').slice(0,50);
+    }
+  },600);
 }
 function delNota(){if(!S.curNota)return;if(!confirm('¿Eliminar esta nota?'))return;S.notas=S.notas.filter(n=>n.id!==S.curNota);S.curNota=null;document.getElementById('nttl').value='';document.getElementById('nbody').value='';document.getElementById('nmeta').textContent='';saveLocal();if(notasIsMobile())notasBack();else rnNotas();}
 function expNota(fmt){
@@ -1847,11 +1919,7 @@ function routeFile(file){
   if(ext==='json'){const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.events)S.events=d.events;if(d.venc)S.venc=d.venc;if(d.notas)S.notas=d.notas;if(d.cfg)S.cfg={...S.cfg,...d.cfg};if(d.sheetData)S.sheetData=d.sheetData;saveLocal();toast('Backup restaurado ✓');}catch(err){toast('JSON inválido');}};r.readAsText(file);}
   else if(ext==='csv'||ext==='xlsx'||ext==='xls'){
     sw('sheet');
-    const fakeEvt={target:{files:[file],value:''}};
-    // Simulate the input change
-    const dt=new DataTransfer();dt.items.add(file);
-    const inp=document.getElementById('sheet-file-inp');inp.files=dt.files;
-    onSheetFileChosen({target:{files:[file],value:''}});
+    readExcelFile(file);
   }
   else if(ext==='txt'||ext==='md'){
     const r=new FileReader();r.onload=ev=>{

@@ -356,7 +356,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .hmod-name{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--txt)}
 .hmod-hint{font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:1px}
 .hmod-badge{position:absolute;top:9px;right:9px;background:var(--red);color:#fff;font-size:9px;font-family:var(--fm);border-radius:9px;padding:1px 6px;font-weight:500}
-.home-bottom{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.home-bottom{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
 .hb-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow)}
 .hb-ttl{font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
 .hev{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
@@ -466,6 +466,37 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
   /* Popup mobile */
   #popup-box .phdr{padding:8px 40px 8px 12px}
 }
+
+/* ── COMMAND PALETTE (Ctrl+K) ─────────────────────────────────────── */
+#kpal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:flex-start;justify-content:center;padding-top:12vh;backdrop-filter:blur(4px);animation:fadeOv .12s ease}
+#kpal-ov.open{display:flex}
+#kpal{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);width:min(92vw,580px);box-shadow:var(--shadow-lg);overflow:hidden;animation:popIn .16s cubic-bezier(.4,0,.2,1)}
+#kpal-inp-wrap{display:flex;align-items:center;gap:9px;padding:12px 16px;border-bottom:1px solid var(--line)}
+#kpal-icon{font-size:16px;opacity:.4;flex-shrink:0}
+#kpal-inp{flex:1;background:transparent;border:none;color:var(--txt);font-family:var(--fb);font-size:15px;outline:none}
+#kpal-inp::placeholder{color:var(--txt3)}
+#kpal-esc{font-family:var(--fm);font-size:10px;color:var(--txt3);background:var(--bg3);border:1px solid var(--line);border-radius:5px;padding:2px 7px;cursor:pointer;flex-shrink:0}
+#kpal-results{max-height:340px;overflow-y:auto}
+.kpr-section{font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;padding:8px 16px 3px;border-top:1px solid var(--line)}
+.kpr-section:first-child{border-top:none}
+.kpr{display:flex;align-items:center;gap:11px;padding:9px 16px;cursor:pointer;transition:background var(--tr)}
+.kpr:hover,.kpr.sel{background:var(--accent-dim)}
+.kpr.sel{border-left:2px solid var(--accent)}
+.kpr-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-family:var(--fm)}
+.kpr-ico.agenda{background:var(--accent-dim);color:var(--accent)}
+.kpr-ico.venc{background:var(--amber-dim);color:var(--amber)}
+.kpr-ico.nota{background:var(--green-dim);color:var(--green)}
+.kpr-ico.nav{background:var(--bg3);color:var(--txt2)}
+.kpr-main{flex:1;min-width:0}
+.kpr-ttl{font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpr-sub{font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpr-badge{font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:9px}
+.kpr-badge.urg{background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)}
+.kpr-badge.prx{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)}
+#kpal-empty{padding:28px 16px;text-align:center;font-family:var(--fm);font-size:12px;color:var(--txt3)}
+#kpal-hint{padding:7px 16px;border-top:1px solid var(--line);display:flex;gap:14px;background:var(--bg3)}
+.kph{font-family:var(--fm);font-size:10px;color:var(--txt3);display:flex;align-items:center;gap:4px}
+.kph kbd{background:var(--bg4);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;font-size:9px;color:var(--txt2)}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -562,7 +593,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
   </div>
   <div class="tspc"></div>
   <div id="top-clock"></div>
-  <button class="tbtn" id="theme-btn" onclick="toggleTheme()" title="Tema">☀</button>
+  <button class="tbtn" onclick="kpalOpen()" title="Buscar (Ctrl+K)" style="font-size:13px;gap:4px;padding:0 9px;min-width:auto;font-family:var(--fm);font-size:11px;color:var(--txt3)">🔍 <span style="display:none" id="kbtn-lbl">Ctrl+K</span></button><button class="tbtn" id="theme-btn" onclick="toggleTheme()" title="Tema">☀</button>
   <button class="tbtn" onclick="openAddEvent()" title="Nuevo evento" style="font-size:18px;line-height:1">+</button>
 </div>
 
@@ -679,6 +710,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
           <div class="hb-card">
             <div class="hb-ttl">Próximos vencimientos</div>
             <div id="home-vlist"><div class="empty-t" style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin vencimientos</div></div>
+          </div>
+          <div class="hb-card" onclick="sw('notas')" style="cursor:pointer" title="Ir a Notas">
+            <div class="hb-ttl">Última nota</div>
+            <div id="home-nlist"><div style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin notas</div></div>
           </div>
         </div>
       </div>
@@ -2275,6 +2310,18 @@ function renderHome(){
       </div>`;
     }).join('');
   }
+
+  // Última nota
+  const nList=document.getElementById('home-nlist');
+  if(nList){
+    const lastN=S.notas.slice().sort((a,b)=>(b.upd||0)-(a.upd||0))[0];
+    if(!lastN){
+      nList.innerHTML='<div style="font-family:var(--fm);font-size:11px;color:var(--txt3);padding:8px 0">Sin notas</div>';
+    }else{
+      const preview=(lastN.body||'').replace(/\n/g,' ').trim().slice(0,80);
+      nList.innerHTML=`<div style="font-size:12px;color:var(--txt);font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${lastN.titulo||'Sin título'}</div><div style="font-family:var(--fm);font-size:11px;color:var(--txt3);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${preview||'(vacía)'}</div>`;
+    }
+  }
 }
 
 function getWeekNum(d){
@@ -2505,6 +2552,104 @@ ALTER TABLE ws_userdata ENABLE ROW LEVEL SECURITY;
 CREATE POLICY users_own_data ON ws_userdata FOR ALL USING (user_email = (auth.jwt()->>'email'));
 `);
 
+
+// ══════════════════════════════════════════
+// COMMAND PALETTE — Ctrl+K
+// ══════════════════════════════════════════
+let kpalIdx=-1;
+
+function kpalOpen(){
+  document.getElementById('kpal-ov').classList.add('open');
+  const inp=document.getElementById('kpal-inp');
+  inp.value='';
+  kpalIdx=-1;
+  kpalSearch();
+  setTimeout(()=>inp.focus(),80);
+}
+function kpalClose(){
+  document.getElementById('kpal-ov').classList.remove('open');
+}
+function kpalKey(e){
+  const items=document.querySelectorAll('.kpr');
+  if(e.key==='Escape'){kpalClose();return;}
+  if(e.key==='ArrowDown'){e.preventDefault();kpalIdx=Math.min(kpalIdx+1,items.length-1);kpalHighlight(items);return;}
+  if(e.key==='ArrowUp'){e.preventDefault();kpalIdx=Math.max(kpalIdx-1,0);kpalHighlight(items);return;}
+  if(e.key==='Enter'){e.preventDefault();const sel=document.querySelector('.kpr.sel');if(sel)sel.click();return;}
+}
+function kpalHighlight(items){
+  items.forEach((it,i)=>{it.classList.toggle('sel',i===kpalIdx);});
+  const sel=document.querySelector('.kpr.sel');if(sel)sel.scrollIntoView({block:'nearest'});
+}
+
+function kpalSearch(){
+  const q=document.getElementById('kpal-inp').value.trim().toLowerCase();
+  const box=document.getElementById('kpal-results');
+  kpalIdx=-1;
+  let html='';
+  const today=dk(new Date());
+
+  if(!q){
+    // Sin query: mostrar accesos directos a paneles
+    const navItems=[
+      {ico:'📅',label:'Agenda',sub:'Día · semana · mes',action:"kpalClose();sw('agenda')",cls:'nav'},
+      {ico:'⏰',label:'Vencimientos',sub:'Impuestos y pagos',action:"kpalClose();sw('venc')",cls:'nav'},
+      {ico:'📝',label:'Notas',sub:'Texto libre',action:"kpalClose();sw('notas')",cls:'nav'},
+      {ico:'🤖',label:'Asistente IA',sub:'Claude · workspace',action:"kpalClose();sw('ia')",cls:'nav'},
+      {ico:'🧮',label:'Calculadora',sub:'IVA · % · UYU/USD',action:"kpalClose();sw('calc')",cls:'nav'},
+      {ico:'📊',label:'Visor Excel',sub:'XLSX · CSV',action:"kpalClose();sw('sheet')",cls:'nav'},
+    ];
+    html+='<div class="kpr-section">Ir a</div>';
+    html+=navItems.map(n=>`<div class="kpr" onclick="${n.action}"><div class="kpr-ico ${n.cls}">${n.ico}</div><div class="kpr-main"><div class="kpr-ttl">${n.label}</div><div class="kpr-sub">${n.sub}</div></div></div>`).join('');
+    box.innerHTML=html;return;
+  }
+
+  let count=0;
+
+  // Eventos
+  const evHits=S.events.filter(e=>(e.titulo||'').toLowerCase().includes(q)||(e.notas||'').toLowerCase().includes(q)).slice(0,5);
+  if(evHits.length){
+    html+='<div class="kpr-section">Eventos</div>';
+    const catDot={trabajo:'var(--accent)',personal:'var(--green)',venc:'var(--red)',feriado:'var(--amber)',otro:'var(--blue)'};
+    html+=evHits.map(e=>{
+      const d=new Date(e.fecha+'T00:00');
+      const label=e.fecha===today?'Hoy':d.toLocaleDateString('es-UY',{day:'numeric',month:'short'});
+      return`<div class="kpr" onclick="kpalClose();S.curDay=new Date('${e.fecha}T00:00');sw('agenda')"><div class="kpr-ico agenda">📅</div><div class="kpr-main"><div class="kpr-ttl">${e.titulo}</div><div class="kpr-sub">${label} · ${e.hora||''} · ${e.cat||''}</div></div></div>`;
+    }).join('');count+=evHits.length;
+  }
+
+  // Vencimientos
+  const vHits=S.venc.filter(v=>(v.nombre||'').toLowerCase().includes(q)||(v.cat||'').toLowerCase().includes(q)).slice(0,5);
+  if(vHits.length){
+    html+='<div class="kpr-section">Vencimientos</div>';
+    html+=vHits.map(v=>{
+      const d=du(v.fecha);
+      const cls=d<=3?'urg':d<=14?'prx':'';
+      const lbl=d===0?'Hoy':d<0?'Vencido':d+'d';
+      return`<div class="kpr" onclick="kpalClose();sw('venc')"><div class="kpr-ico venc">⏰</div><div class="kpr-main"><div class="kpr-ttl">${v.nombre}</div><div class="kpr-sub">${v.cat} · ${v.fecha}</div></div>${cls?`<span class="kpr-badge ${cls}">${lbl}</span>`:''}</div>`;
+    }).join('');count+=vHits.length;
+  }
+
+  // Notas
+  const nHits=S.notas.filter(n=>(n.titulo||'').toLowerCase().includes(q)||(n.body||'').toLowerCase().includes(q)).slice(0,5);
+  if(nHits.length){
+    html+='<div class="kpr-section">Notas</div>';
+    html+=nHits.map(n=>`<div class="kpr" onclick="kpalClose();sw('notas');setTimeout(()=>{const el=document.querySelector('[data-nid=\'${n.id}\']');if(el)el.click();},200)"><div class="kpr-ico nota">📝</div><div class="kpr-main"><div class="kpr-ttl">${n.titulo||'Sin título'}</div><div class="kpr-sub">${(n.body||'').slice(0,60)}</div></div></div>`).join('');count+=nHits.length;
+  }
+
+  if(!count){html='<div id="kpal-empty">Sin resultados para "<b>'+q+'</b>"</div>';}
+  box.innerHTML=html;
+}
+
+// Keyboard shortcut global
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();
+    document.getElementById('kpal-ov').classList.contains('open')?kpalClose():kpalOpen();
+  }
+  if(e.key==='Escape'&&document.getElementById('kpal-ov').classList.contains('open')){kpalClose();}
+});
+// Mostrar label en topbar solo en desktop
+if(window.innerWidth>=900){const lb=document.getElementById('kbtn-lbl');if(lb)lb.style.display='inline';}
+
 // ═
 // INIT
 // ═
@@ -2512,5 +2657,23 @@ regPWA();
 checkSession();
 initLogoClick();
 </script>
+
+<!-- COMMAND PALETTE -->
+<div id="kpal-ov" onclick="if(event.target===this)kpalClose()">
+  <div id="kpal">
+    <div id="kpal-inp-wrap">
+      <span id="kpal-icon">🔍</span>
+      <input id="kpal-inp" placeholder="Buscar eventos, vencimientos, notas…" autocomplete="off"
+             oninput="kpalSearch()" onkeydown="kpalKey(event)">
+      <span id="kpal-esc" onclick="kpalClose()">ESC</span>
+    </div>
+    <div id="kpal-results"></div>
+    <div id="kpal-hint">
+      <span class="kph"><kbd>↑↓</kbd> navegar</span>
+      <span class="kph"><kbd>Enter</kbd> abrir</span>
+      <span class="kph"><kbd>Ctrl K</kbd> abrir / cerrar</span>
+    </div>
+  </div>
+</div>
 </body>
 </html>

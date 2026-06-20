@@ -1463,7 +1463,16 @@ async function syncToCloud(){
     updated_at:new Date().toISOString()
   };
   try{
-    await sbFetch('POST','/rest/v1/ws_userdata',payload,token);
+    await fetch(SB_URL+'/rest/v1/ws_userdata?on_conflict=user_email',{
+      method:'POST',
+      headers:{
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+token,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body:JSON.stringify(payload)
+    });
   }catch(e){}
 }
 

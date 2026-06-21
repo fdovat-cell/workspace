@@ -1463,18 +1463,25 @@ async function syncToCloud(){
     updated_at:new Date().toISOString()
   };
   try{
-    await fetch(SB_URL+'/rest/v1/ws_userdata?on_conflict=user_email',{
-      method:'POST',
-      headers:{
-        'apikey':SB_KEY,
-        'Authorization':'Bearer '+token,
-        'Content-Type':'application/json',
-        'Prefer':'resolution=merge-duplicates,return=minimal'
-      },
-      body:JSON.stringify(payload)
-    });
+    const chk=await fetch(SB_URL+'/rest/v1/ws_userdata?user_email=eq.'+encodeURIComponent(uid2)+'&select=user_email',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+token}
+    }).then(r=>r.json()).catch(()=>[]);
+    if(chk&&chk.length){
+      await fetch(SB_URL+'/rest/v1/ws_userdata?user_email=eq.'+encodeURIComponent(uid2),{
+        method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+    }else{
+      await fetch(SB_URL+'/rest/v1/ws_userdata',{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+    }
   }catch(e){}
 }
+ 
 
 async function loadFromCloud(){
   const token=getToken();if(!token)return false;

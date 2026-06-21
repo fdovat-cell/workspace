@@ -1165,7 +1165,7 @@ const CC=(c,p)=>({t:['var(--accent-dim)','var(--accent-border)','var(--accent)']
 const S={
   user:null,userName:'',userEmail:'',
   events:[],venc:[],notas:[],favorites:[],
-  cfg:{apikey:'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',fx:42,pais:'uy',iaDirectMode:false},
+  cfg:{apikey:'',fx:42,pais:'uy',iaDirectMode:false},
   sheetData:[],iaHist:[],
   day:new Date(),month:new Date(),
   view:'day',curNota:null,selCat:'trabajo',editEv:null,selRecur:'ninguna',
@@ -2158,9 +2158,9 @@ Sé útil pero no generes acciones que el usuario no pidió.`;
 
 async function webSearch(query){
   try{
-    const r=await fetch('https://google.serper.dev/search',{
+    const r=await fetch('https://workspace-ai-proxy.fdovat.workers.dev/search',{
       method:'POST',
-      headers:{'X-API-KEY':'0ef3a1a73b0b688fbda0b8d8676a444e5e99a873','Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({q:query,gl:'uy',hl:'es',num:5})
     });
     const d=await r.json();
@@ -2178,7 +2178,6 @@ async function sendIA(){
   S.iaHist.push({role:'user',content:wsContext()+'\n\nUsuario: '+text});
   const typing=appendIATyping();
   try{
-    const GROQ_KEY='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';
     const SEARCH_KEYWORDS=['noticias','partido','juego','clima','tiempo','resultado','precio','dolar','euro','quien','que paso','cuando','donde'];
     const needsSearch=SEARCH_KEYWORDS.some(k=>text.toLowerCase().includes(k));
     let searchCtx='';
@@ -2189,9 +2188,9 @@ async function sendIA(){
     const msgs=S.iaHist.slice(-12).filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,content:m.content}));
     const lastMsg=msgs[msgs.length-1];
     if(lastMsg&&lastMsg.role==='user'&&searchCtx)lastMsg.content+=searchCtx;
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    const res=await fetch('https://workspace-ai-proxy.fdovat.workers.dev/chat',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:800,messages:[{role:'system',content:IA_SYS},...msgs]}),
     });
     const data=await res.json();

@@ -979,12 +979,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     <div class="panel" id="p-ia">
       <div class="phdr">
         <div class="pttl">Asistente IA</div>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-          <div class="ia-mode-toggle">
-            <span id="ia-mode-lbl">Confirmar acciones</span>
-            <button class="toggle-sw" id="ia-toggle" onclick="toggleIAMode()" title="Modo directo"></button>
-          </div>
-        </div>
+
       </div>
       <div id="ia-msgs" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
       <div style="padding:9px 16px;border-top:1px solid var(--line);background:var(--bg2);display:flex;gap:8px">
@@ -997,11 +992,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     <div class="panel" id="p-config">
       <div class="phdr"><div class="pttl">Configuración</div></div>
       <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;max-width:500px">
-        <div class="cfg-section">
-          <div class="cfg-lbl">Asistente IA</div>
-          <input type="password" class="fi" id="cfg-api" placeholder="AIza..." oninput="saveConf()">
-          <div style="font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:5px">Solo se guarda en este dispositivo. Necesaria para usar el asistente.</div>
-        </div>
+
         <div class="cfg-section">
           <div class="cfg-lbl">Feriados</div>
           <div class="cfg-row">
@@ -1164,7 +1155,7 @@ const CC=(c,p)=>({t:['var(--accent-dim)','var(--accent-border)','var(--accent)']
 const S={
   user:null,userName:'',userEmail:'',
   events:[],venc:[],notas:[],favorites:[],
-  cfg:{apikey:'',fx:42,pais:'uy',iaDirectMode:false},
+  cfg:{fx:42,pais:'uy'},
   sheetData:[],iaHist:[],
   day:new Date(),month:new Date(),
   view:'day',curNota:null,selCat:'trabajo',editEv:null,selRecur:'ninguna',
@@ -1191,7 +1182,38 @@ async function sbSignOut(token){return sbFetch('POST','/auth/v1/logout',null,tok
 async function sbResetPass(email){return sbFetch('POST','/auth/v1/recover',{email});}
 function getToken(){return localStorage.getItem('ws_token');}
 function setToken(t){localStorage.setItem('ws_token',t);}
-function clearToken(){localStorage.removeItem('ws_token');localStorage.removeItem('ws_user');}
+function setRefreshToken(t){if(t)localStorage.setItem('ws_refresh_token',t);}
+function getRefreshToken(){return localStorage.getItem('ws_refresh_token');}
+function setTokenExpiry(ts){if(ts)localStorage.setItem('ws_token_expiry',String(ts));}
+function getTokenExpiry(){return parseInt(localStorage.getItem('ws_token_expiry')||'0');}
+function clearToken(){localStorage.removeItem('ws_token');localStorage.removeItem('ws_refresh_token');localStorage.removeItem('ws_token_expiry');localStorage.removeItem('ws_user');}
+async function sbRefreshToken(){
+  const rt=getRefreshToken();if(!rt)return null;
+  try{
+    const r=await sbFetch('POST','/auth/v1/token?grant_type=refresh_token',{refresh_token:rt});
+    if(r&&r.access_token){
+      setToken(r.access_token);
+      setRefreshToken(r.refresh_token||rt);
+      setTokenExpiry(r.expires_at||(Math.floor(Date.now()/1000)+3600));
+      return r.access_token;
+    }
+  }catch(e){}
+  return null;
+}
+async function hashPin(pin){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('ws_bov::'+pin));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function scheduleTokenRefresh(){
+  const expiry=getTokenExpiry();
+  if(!expiry)return;
+  const msUntilRefresh=Math.max(0,(expiry-300)*1000-Date.now());
+  setTimeout(async()=>{
+    const newToken=await sbRefreshToken();
+    if(newToken)scheduleTokenRefresh();
+    else{clearToken();location.reload();}
+  },msUntilRefresh);
+}
 async function dbGet(table,filter=''){const token=getToken();return sbFetch('GET','/rest/v1/'+table+'?'+filter+'&select=*',null,token);}
 
 // ═
@@ -1341,6 +1363,8 @@ async function doLogin(){
   document.querySelector('#auth-form-login .auth-btn').textContent='Ingresar';
   if(res&&res.access_token){
     setToken(res.access_token);
+    setRefreshToken(res.refresh_token);
+    setTokenExpiry(res.expires_at);
     localStorage.setItem('ws_user',JSON.stringify({email,name:res.user?.user_metadata?.name||email.split('@')[0]}));
     enterApp(res.access_token,res.user);
   }else{
@@ -1402,11 +1426,21 @@ async function checkSession(){
       }
     }
   }
-  const token=getToken();
+  let token=getToken();
   if(!token){showAuth();return;}
+  const expiry=getTokenExpiry();
+  if(expiry&&Date.now()/1000>expiry-60){
+    const newToken=await sbRefreshToken();
+    if(newToken)token=newToken;
+    else{clearToken();showAuth();return;}
+  }
   const ui=await sbFetch('GET','/auth/v1/user',null,token).catch(()=>null);
   if(ui&&ui.email)enterApp(token,ui);
-  else{clearToken();showAuth();}
+  else{
+    const newToken=await sbRefreshToken();
+    if(newToken){const ui2=await sbFetch('GET','/auth/v1/user',null,newToken).catch(()=>null);if(ui2&&ui2.email){enterApp(newToken,ui2);return;}}
+    clearToken();showAuth();
+  }
 }
 function showAuth(){document.getElementById('auth-screen').style.display='flex';}
 
@@ -1569,11 +1603,8 @@ function loadLocal(){
     if(d.sheetData)S.sheetData=d.sheetData;
     if(d.theme)S.theme=d.theme;
     if(S.cfg.fx)document.getElementById('fxr').value=S.cfg.fx;
-    if(S.cfg.apikey)document.getElementById('cfg-api').value=S.cfg.apikey;
     if(S.cfg.fx)document.getElementById('cfg-fx').value=S.cfg.fx;
     if(S.cfg.pais)document.getElementById('cfg-pais').value=S.cfg.pais;
-    if(S.cfg.iaDirectMode)document.getElementById('ia-toggle').classList.toggle('on',S.cfg.iaDirectMode);
-    updateIAModeLabel();
   }catch(e){}
 }
 
@@ -1827,18 +1858,7 @@ function addV(){
   S.venc.push(venc);
   document.getElementById('vn').value='';document.getElementById('vf').value='';
   saveLocal();rnVenc();toast('Vencimiento agregado');
-  // Sugerir recordatorio via IA si hay API key
-  if(S.cfg.apikey){
-    const days=du(f);
-    if(days>3){
-      const suggestMsg=`Agregaste el vencimiento "${n}" para el ${f}. ¿Querés que te cree un recordatorio en el calendario 3 días antes?`;
-      setTimeout(()=>{
-        const chip=document.createElement('div');
-        chip.style.cssText='position:fixed;bottom:70px;right:20px;background:var(--bg2);border:1px solid var(--accent-border);border-radius:var(--radius-lg);padding:12px 14px;font-family:var(--fm);font-size:11px;color:var(--txt2);z-index:1500;max-width:280px;box-shadow:var(--shadow-lg);animation:fadeUp .2s ease';
-        chip.innerHTML=`<div style="color:var(--accent);margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:.05em">✦ Sugerencia de Claude</div><div style="margin-bottom:9px;line-height:1.5">${suggestMsg}</div><div style="display:flex;gap:7px"><button onclick="addReminderForVenc('${n}','${f}');this.closest('div[style]').remove()" style="background:var(--accent);color:#fff;border:none;border-radius:5px;padding:4px 11px;font-family:var(--fm);font-size:10px;cursor:pointer">Sí, agregar</button><button onclick="this.closest('div[style]').remove()" style="background:transparent;border:1px solid var(--line);color:var(--txt3);border-radius:5px;padding:4px 11px;font-family:var(--fm);font-size:10px;cursor:pointer">No gracias</button></div>`;
-        document.body.appendChild(chip);
-        setTimeout(()=>{if(chip.parentNode)chip.remove();},10000);
-      },800);
+,800);
     }
   }
 }
@@ -2117,16 +2137,6 @@ function initDrop(){
 // ═
 // IA  CLAUDE INTEGRADO AL WORKSPACE
 // ═
-function toggleIAMode(){
-  S.cfg.iaDirectMode=!S.cfg.iaDirectMode;
-  document.getElementById('ia-toggle').classList.toggle('on',S.cfg.iaDirectMode);
-  updateIAModeLabel();
-  saveLocal();
-  toast(S.cfg.iaDirectMode?'Modo directo activado  Claude aplica acciones sin confirmar':'Modo confirmación activado');
-}
-function updateIAModeLabel(){
-  document.getElementById('ia-mode-lbl').textContent=S.cfg.iaDirectMode?'Modo directo':'Confirmar acciones';
-}
 
 function initIA(){
   const msgs=document.getElementById('ia-msgs');msgs.innerHTML='';
@@ -2393,7 +2403,6 @@ async function sendIA(){
 // CONFIG
 // ═
 function saveConf(){
-  S.cfg.apikey=document.getElementById('cfg-api').value;
   S.cfg.fx=parseFloat(document.getElementById('cfg-fx').value)||42;
   S.cfg.pais=document.getElementById('cfg-pais').value;
   document.getElementById('fxr').value=S.cfg.fx;
@@ -2479,7 +2488,9 @@ function toast(msg,ms=2400){const t=document.getElementById('toast');t.textConte
 // ══════════════════════════════════════════
 async function fetchClima(){
   try{
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=-34.9&longitude=-56.17&current=temperature_2m,weathercode,windspeed_10m&timezone=America/Montevideo');
+    const _cp={uy:{lat:-34.9,lon:-56.17,tz:'America/Montevideo'},ar:{lat:-34.6,lon:-58.38,tz:'America/Argentina/Buenos_Aires'}};
+    const _c=_cp[S.cfg&&S.cfg.pais||'uy']||_cp.uy;
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${_c.lat}&longitude=${_c.lon}&current=temperature_2m,weathercode,windspeed_10m&timezone=${encodeURIComponent(_c.tz)}`);
     const d=await r.json();
     const temp=Math.round(d.current.temperature_2m);
     const wind=Math.round(d.current.windspeed_10m);
@@ -2629,9 +2640,17 @@ function _updPinDots(){
   }
 }
 
-function _checkBovPin(){
+async function _checkBovPin(){
   const stored=localStorage.getItem('ws_bov_pin');
-  if(bovPinBuffer===stored){
+  const input=bovPinBuffer;
+  let match=false;
+  if(stored&&stored.length===64){
+    match=(await hashPin(input))===stored;
+  }else{
+    match=input===stored;
+    if(match)hashPin(input).then(h=>localStorage.setItem('ws_bov_pin',h));
+  }
+  if(match){
     bovUnlocked=true;
     document.getElementById('boveda-lock').classList.remove('open');
     _enterBovPanel();
@@ -2648,7 +2667,7 @@ function bovSetupConfirm(){
   const errEl=document.getElementById('bov-setup-err');
   if(!/^\d{4}$/.test(p1)){errEl.textContent='El PIN debe tener exactamente 4 dígitos.';return;}
   if(p1!==p2){errEl.textContent='Los PINs no coinciden.';return;}
-  localStorage.setItem('ws_bov_pin',p1);
+  hashPin(p1).then(h=>localStorage.setItem('ws_bov_pin',h));
   bovUnlocked=true;
   document.getElementById('boveda-lock').classList.remove('open');
   _enterBovPanel();
@@ -2842,7 +2861,7 @@ function kpalSearch(){
     html+=evHits.map(e=>{
       const d=new Date(e.fecha+'T00:00');
       const label=e.fecha===today?'Hoy':d.toLocaleDateString('es-UY',{day:'numeric',month:'short'});
-      return`<div class="kpr" onclick="kpalClose();S.curDay=new Date('${e.fecha}T00:00');sw('agenda')"><div class="kpr-ico agenda">📅</div><div class="kpr-main"><div class="kpr-ttl">${e.titulo}</div><div class="kpr-sub">${label} · ${e.hora||''} · ${e.cat||''}</div></div></div>`;
+      return`<div class="kpr" onclick="kpalClose();S.day=new Date('${e.fecha}T00:00');swv('day',null);sw('agenda')"><div class="kpr-ico agenda">📅</div><div class="kpr-main"><div class="kpr-ttl">${e.titulo}</div><div class="kpr-sub">${label} · ${e.hora||''} · ${e.cat||''}</div></div></div>`;
     }).join('');count+=evHits.length;
   }
 

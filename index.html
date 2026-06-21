@@ -536,7 +536,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="auth-logo" id="auth-logo-click" onclick="logoClicks++;clearTimeout(logoTimer);if(logoClicks>=5){logoClicks=0;openAdminPrompt();}else logoTimer=setTimeout(()=>{logoClicks=0;},800);">W<b>·</b>S  Workspace Personal</div>
+    <div class="auth-logo" id="auth-logo-click">W<b>·</b>S  Workspace Personal</div>
     <div id="auth-login-wrap">
       <div class="auth-title">Bienvenido</div>
       <div class="auth-sub">Ingresá para acceder a tu workspace desde cualquier dispositivo.</div>
@@ -1148,8 +1148,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 // ═
 const SB_URL='https://dscnmmdmsmmqewaszcbe.supabase.co';
 const SB_KEY='sb_publishable_FPI1jiAwKvli3XsorZY34A_BOREEDq1';
-const ADMIN_HASH='bfb199b0c132eac87a382234930a3dab050637f07045508daf29c1765522a0cd';
-const SALT='WSP2025';
+const AI_PROXY='https://workspace-ai-proxy.fdovat.workers.dev';
 
 // Utils — definidas primero para que estén disponibles en todo el script
 const DY=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -1198,35 +1197,22 @@ async function dbGet(table,filter=''){const token=getToken();return sbFetch('GET
 // ═
 // ACTIVATION CODE SYSTEM
 // ═
-function h4(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h).toString(36).slice(0,4).toUpperCase().padStart(4,'0');}
+// ACTIVATION CODE SYSTEM — validado server-side en el Worker, no hay fórmula en el cliente
+// ═
 function fmtCode(inp){let v=inp.value.replace(/[^A-Z0-9]/gi,'').toUpperCase();if(v.length>3)v=v.slice(0,3)+'-'+v.slice(3);if(v.length>8)v=v.slice(0,8)+'-'+v.slice(8);inp.value=v.slice(0,13);}
-function mkCode(tier,dias){
-  const tc={free:'F',pro:'P',premium:'X'}[tier]||'P';
-  const dc=String(dias).padStart(3,'0');
-  const rnd=Math.random().toString(36).slice(2,6).toUpperCase();
-  const chk=h4(tc+dc+rnd+SALT);
-  return'WSP-'+chk+'-'+rnd;
-}
-function chkCode(code){
-  const cl=code.trim().toUpperCase().replace(/-/g,'');
-  if(cl.length!==11||!cl.startsWith('WSP'))return null;
-  const chk=cl.slice(3,7),rnd=cl.slice(7,11);
-  for(const t of['F','P','X'])for(const d of['000','030','090','365']){
-    if(h4(t+d+rnd+SALT)===chk){
-      const tm={F:'free',P:'pro',X:'premium'};
-      return{tier:tm[t],dias:parseInt(d),code,valid:true};
-    }
-  }
-  return null;
+async function redeemCode(code,email){
+  try{
+    const r=await fetch(AI_PROXY+'/redeem-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,email})});
+    const d=await r.json();
+    if(!r.ok||!d.ok)return{valid:false,error:d.error||'Código de activación inválido.'};
+    return{valid:true,tier:d.tier,dias:d.dias};
+  }catch(e){return{valid:false,error:'No se pudo validar el código. Revisá tu conexión.'};}
 }
 
 // ═
-// ADMIN  acceso por doble click en logo (auth screen)
+// ADMIN  acceso por click múltiple en logo (auth screen) — login validado en el Worker
 // ═
-async function sha256(msg){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
+let adminToken=null;
 let logoClicks=0,logoTimer=null;
 function initLogoClick(){
   const el=document.getElementById('auth-logo-click');
@@ -1243,32 +1229,43 @@ function openAdminPrompt(){
   const ov=document.createElement('div');
   ov.id='admin-modal-ov';
   ov.style.cssText='position:fixed;inset:0;background:#00000088;z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:340px;max-width:94vw;box-shadow:var(--shadow-lg)"><div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:18px">Acceso Admin</div><label style="font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block">Clave</label><input type="password" id="adm-k" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autocomplete="current-password" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fb);font-size:13px;outline:none;margin-bottom:12px"><div id="adm-err" style="font-family:var(--fm);font-size:11px;color:var(--red);background:var(--red-dim);border:1px solid var(--red-border);border-radius:7px;padding:7px 11px;display:none;margin-bottom:12px">Clave incorrecta</div><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="document.getElementById(\'admin-modal-ov\').remove()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button><button id="adm-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:500;cursor:pointer">Ingresar</button></div></div>';
+  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:340px;max-width:94vw;box-shadow:var(--shadow-lg)"><div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:18px">Acceso Admin</div><label style="font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block">Clave</label><input type="password" id="adm-k" placeholder="••••••••" autocomplete="current-password" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fb);font-size:13px;outline:none;margin-bottom:12px"><div id="adm-err" style="font-family:var(--fm);font-size:11px;color:var(--red);background:var(--red-dim);border:1px solid var(--red-border);border-radius:7px;padding:7px 11px;display:none;margin-bottom:12px">Clave incorrecta</div><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="document.getElementById(\'admin-modal-ov\').remove()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button><button id="adm-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:500;cursor:pointer">Ingresar</button></div></div>';
   document.body.appendChild(ov);
   const inp=document.getElementById('adm-k');
   inp.focus();
   async function checkAdminKey(){
     const k=inp.value;
     if(!k)return;
-    const h=await sha256(k+SALT);
-    if(h===ADMIN_HASH){
-      ov.remove();
-      document.getElementById('auth-screen').style.display='none';
-      document.getElementById('admin-screen').classList.add('open');
-      loadUsers();
-    }else{
+    const okBtn=document.getElementById('adm-ok');
+    okBtn.textContent='Verificando…';okBtn.disabled=true;
+    try{
+      const r=await fetch(AI_PROXY+'/admin-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:k})});
+      const d=await r.json();
+      okBtn.textContent='Ingresar';okBtn.disabled=false;
+      if(r.ok&&d.ok&&d.token){
+        adminToken=d.token;
+        ov.remove();
+        document.getElementById('auth-screen').style.display='none';
+        document.getElementById('admin-screen').classList.add('open');
+        loadUsers();
+      }else{
+        document.getElementById('adm-err').style.display='block';
+        inp.value='';inp.focus();
+      }
+    }catch(e){
+      okBtn.textContent='Ingresar';okBtn.disabled=false;
+      document.getElementById('adm-err').textContent='No se pudo conectar. Probá de nuevo.';
       document.getElementById('adm-err').style.display='block';
-      inp.value='';inp.focus();
     }
   }
   document.getElementById('adm-ok').onclick=checkAdminKey;
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminKey();});
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
 }
-function closeAdmin(){document.getElementById('admin-screen').classList.remove('open');document.getElementById('auth-screen').style.display='flex';}
+function closeAdmin(){adminToken=null;document.getElementById('admin-screen').classList.remove('open');document.getElementById('auth-screen').style.display='flex';}
 
 // ADM también accesible desde topbar (solo si logged in)
-// Pero lo quitamos del topbar  triple click en el logo del topbar
+// Pero lo quitamos del topbar  triple click en el logo del topbar
 let topLogoClicks=0,topLogoTimer=null;
 document.getElementById('logo').addEventListener('click',()=>{
   topLogoClicks++;
@@ -1278,15 +1275,27 @@ document.getElementById('logo').addEventListener('click',()=>{
 });
 
 let lastCode='';
-function genCode(){
+async function genCode(){
   const dest=document.getElementById('gen-dest').value.trim();
   const tier=document.getElementById('gen-tier').value;
   const dias=parseInt(document.getElementById('gen-dias').value);
-  const code=mkCode(tier,dias);lastCode=code;
-  const exp=dias===0?'Sin vencimiento':'Válido '+dias+' días';
-  document.getElementById('code-val').textContent=code;
-  document.getElementById('code-info').textContent='Destinatario: '+(dest||'—')+'\nTier: '+tier+'\nVencimiento: '+exp+'\nFecha: '+new Date().toLocaleString('es-UY');
-  document.getElementById('code-box').classList.add('show');
+  const btn=document.querySelector('.gen-btn');
+  const prevTxt=btn.textContent;
+  btn.textContent='Generando…';btn.disabled=true;
+  try{
+    const r=await fetch(AI_PROXY+'/gen-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:adminToken,tier,dias,dest})});
+    const d=await r.json();
+    btn.textContent=prevTxt;btn.disabled=false;
+    if(!r.ok||!d.ok){toast(d.error||'No se pudo generar el código');return;}
+    lastCode=d.code;
+    const exp=dias===0?'Sin vencimiento':'Válido '+dias+' días';
+    document.getElementById('code-val').textContent=d.code;
+    document.getElementById('code-info').textContent='Destinatario: '+(dest||'—')+'\nTier: '+tier+'\nVencimiento: '+exp+'\nFecha: '+new Date().toLocaleString('es-UY');
+    document.getElementById('code-box').classList.add('show');
+  }catch(e){
+    btn.textContent=prevTxt;btn.disabled=false;
+    toast('No se pudo conectar con el servidor');
+  }
 }
 async function cpCode(){navigator.clipboard.writeText(lastCode).then(()=>toast('Código copiado ✓'));}
 async function loadUsers(){
@@ -1347,16 +1356,18 @@ async function doRegister(){
   hideErr('reg-err');hideErr('reg-ok');
   if(!code||!name||!email||!pass){showErr('reg-err','Completá todos los campos.');return;}
   if(pass.length<6){showErr('reg-err','La contraseña debe tener al menos 6 caracteres.');return;}
-  const cdata=chkCode(code);
-  if(!cdata){showErr('reg-err','Código de activación inválido.');return;}
-  document.querySelector('#auth-form-register .auth-btn').textContent='Creando cuenta';
+  const btn=document.querySelector('#auth-form-register .auth-btn');
+  btn.textContent='Verificando código…';
+  const cdata=await redeemCode(code,email);
+  if(!cdata.valid){btn.textContent='Crear cuenta';showErr('reg-err',cdata.error||'Código de activación inválido.');return;}
+  btn.textContent='Creando cuenta…';
   const res=await sbSignUp(email,pass,{name,tier:cdata.tier,code}).catch(()=>null);
-  document.querySelector('#auth-form-register .auth-btn').textContent='Crear cuenta';
+  btn.textContent='Crear cuenta';
   if(res&&(res.user||res.id)){
     showOk('reg-ok','¡Cuenta creada! Revisá tu email para confirmar, luego ingresá.');
     setTimeout(()=>authTab('login'),3000);
   }else{
-    showErr('reg-err',res?.error_description||res?.msg||'Error al crear la cuenta.');
+    showErr('reg-err',res?.error_description||res?.msg||'Error al crear la cuenta. Tu código ya fue consumido — contactanos si necesitás uno nuevo.');
   }
 }
 async function doReset(){

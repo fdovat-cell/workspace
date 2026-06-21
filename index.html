@@ -2169,11 +2169,13 @@ async function webSearch(query){
   }catch(e){return 'Error al buscar: '+e.message;}
 }
 
-async function callGroq(messages){
+async function callGroq(messages,useTools=true){
+  const body={model:'llama-3.3-70b-versatile',max_tokens:800,messages};
+  if(useTools){body.tools=IA_TOOLS;body.tool_choice='auto';}
   const res=await fetch('https://workspace-ai-proxy.fdovat.workers.dev/chat',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:800,messages,tools:IA_TOOLS,tool_choice:'auto'}),
+    body:JSON.stringify(body),
   });
   const data=await res.json();
   if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
@@ -2256,7 +2258,14 @@ async function sendIA(){
   const typing=appendIATyping();
   try{
     let messages=[{role:'system',content:IA_SYS+'\n\n'+wsContext()},...S.iaHist.slice(-12)];
-    let data=await callGroq(messages);
+    let data;
+    try{
+      data=await callGroq(messages);
+    }catch(e){
+      if((e.message||'').toLowerCase().includes('failed_generation')||(e.message||'').toLowerCase().includes('failed to call a function')){
+        data=await callGroq(messages,false);
+      }else{throw e;}
+    }
     let msg=data.choices?.[0]?.message;
     if(!msg)throw new Error('Sin respuesta de la IA');
     const actionNotes=[];
@@ -2276,7 +2285,13 @@ async function sendIA(){
         }
         messages.push({role:'tool',tool_call_id:tc.id,content:String(toolResult)});
       }
-      data=await callGroq(messages);
+      try{
+        data=await callGroq(messages);
+      }catch(e){
+        if((e.message||'').toLowerCase().includes('failed_generation')||(e.message||'').toLowerCase().includes('failed to call a function')){
+          data=await callGroq(messages,false);
+        }else{throw e;}
+      }
       msg=data.choices?.[0]?.message;
       loops++;
     }

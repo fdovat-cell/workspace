@@ -2139,22 +2139,22 @@ Notas recientes: ${lastNotas.join(' | ')||'ninguna'}
 IDs de eventos próximos para editar/eliminar: ${S.events.filter(e=>e.fecha>=today&&e.cat!=='feriado').slice(0,10).map(e=>e.id+'='+e.titulo).join(', ')||'ninguno'}`;
 }
 
-const IA_SYS=`Sos el asistente personal integrado en este workspace. Hablás en español rioplatense, de forma concisa y natural  sin ser insistente ni invasivo. Respondés lo que te preguntan y das acciones cuando el usuario las pide o son obviamente útiles.
+const IA_SYS=`Sos el asistente personal integrado en este workspace. Hablás en español rioplatense, de forma concisa y natural, sin ser insistente ni invasivo.
 
-Tenés acceso completo al workspace: podés ver y modificar eventos, vencimientos, notas y planilla.
+Tenés acceso completo al workspace (eventos, vencimientos, notas, planilla) mediante herramientas. Usalas directamente cuando el usuario pida crear, editar, eliminar o navegar - no hace falta pedir confirmación, el usuario puede deshacer cualquier acción después.
 
-ACCIONES disponibles  cuando debas ejecutar algo, incluí al FINAL de tu respuesta el bloque ACTION_JSON:
-- Agregar evento: ACTION_JSON:[{"type":"add_event","titulo":"...","fecha":"YYYY-MM-DD","hora":"HH:MM","cat":"trabajo|personal|venc|otro","notas":"..."}]
-- Editar evento: ACTION_JSON:[{"type":"edit_event","id":"ID_DEL_EVENTO","titulo":"...","fecha":"YYYY-MM-DD","hora":"HH:MM"}]
-- Eliminar evento: ACTION_JSON:[{"type":"del_event","id":"ID_DEL_EVENTO"}]
-- Agregar vencimiento: ACTION_JSON:[{"type":"add_venc","nombre":"...","fecha":"YYYY-MM-DD","cat":"impuesto|pago|documento|contrato|otro"}]
-- Crear nota: ACTION_JSON:[{"type":"add_nota","titulo":"...","body":"..."}]
-- Poner datos en planilla: ACTION_JSON:[{"type":"add_sheet","data":[["Col A","Col B"],["dato1","dato2"]]}]
-- Navegar a sección: ACTION_JSON:[{"type":"nav","panel":"agenda|venc|notas|sheet|calc"}]
+Para preguntas sobre el workspace (qué tengo hoy, próximos vencimientos, etc.) usá el contexto que se te da abajo, no inventes datos. Para preguntas sobre temas externos y actuales (noticias, clima, resultados, precios, cotizaciones, cualquier dato que pueda haber cambiado) usá la herramienta web_search en vez de responder de memoria.
+Sé útil pero no uses herramientas que el usuario no pidió ni insinuó.`;
 
-Podés ejecutar varias acciones juntas: ACTION_JSON:[{accion1},{accion2}]
-Para consultas sin acción concreta (¿qué tengo hoy?, resúmenes, preguntas), respondé normalmente sin ACTION_JSON.
-Sé útil pero no generes acciones que el usuario no pidió.`;
+const IA_TOOLS=[
+  {type:'function',function:{name:'web_search',description:'Buscar información actual en internet: noticias, clima, resultados deportivos, precios, cotizaciones, cualquier dato que pueda haber cambiado.',parameters:{type:'object',properties:{query:{type:'string',description:'Texto de búsqueda'}},required:['query']}}},
+  {type:'function',function:{name:'add_event',description:'Agregar un evento al calendario',parameters:{type:'object',properties:{titulo:{type:'string'},fecha:{type:'string',description:'YYYY-MM-DD'},hora:{type:'string',description:'HH:MM'},cat:{type:'string',enum:['trabajo','personal','venc','otro']},notas:{type:'string'}},required:['titulo','fecha']}}},
+  {type:'function',function:{name:'edit_event',description:'Editar un evento existente por su id',parameters:{type:'object',properties:{id:{type:'string'},titulo:{type:'string'},fecha:{type:'string'},hora:{type:'string'},cat:{type:'string'}},required:['id']}}},
+  {type:'function',function:{name:'del_event',description:'Eliminar un evento existente por su id',parameters:{type:'object',properties:{id:{type:'string'}},required:['id']}}},
+  {type:'function',function:{name:'add_venc',description:'Agregar un vencimiento',parameters:{type:'object',properties:{nombre:{type:'string'},fecha:{type:'string',description:'YYYY-MM-DD'},cat:{type:'string',enum:['impuesto','pago','documento','contrato','otro']}},required:['nombre','fecha']}}},
+  {type:'function',function:{name:'add_nota',description:'Crear una nota',parameters:{type:'object',properties:{titulo:{type:'string'},body:{type:'string'}},required:['titulo']}}},
+  {type:'function',function:{name:'nav',description:'Navegar a una sección del workspace',parameters:{type:'object',properties:{panel:{type:'string',enum:['agenda','venc','notas','sheet','calc']}},required:['panel']}}},
+];
 
 async function webSearch(query){
   try{
@@ -2169,69 +2169,131 @@ async function webSearch(query){
   }catch(e){return 'Error al buscar: '+e.message;}
 }
 
+async function callGroq(messages){
+  const res=await fetch('https://workspace-ai-proxy.fdovat.workers.dev/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:800,messages,tools:IA_TOOLS,tool_choice:'auto'}),
+  });
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message||JSON.stringify(data.error));
+  return data;
+}
+
+function execActionTool(name,args){
+  let result='ok',undo=null,label='';
+  if(name==='add_event'){
+    const id=uid();
+    S.events.push({id,titulo:args.titulo,fecha:args.fecha,hora:args.hora||'09:00',cat:args.cat||'trabajo',notas:args.notas||''});
+    saveLocal();rcv();
+    label='Evento agregado: '+args.titulo;
+    undo=()=>{S.events=S.events.filter(e=>e.id!==id);saveLocal();rcv();};
+    result='Evento agregado (id '+id+')';
+  }else if(name==='edit_event'){
+    const ev=S.events.find(e=>e.id===args.id);
+    if(!ev){result='Error: no existe un evento con ese id';}
+    else{
+      const prev={...ev};
+      if(args.titulo)ev.titulo=args.titulo;if(args.fecha)ev.fecha=args.fecha;if(args.hora)ev.hora=args.hora;if(args.cat)ev.cat=args.cat;
+      saveLocal();rcv();
+      label='Evento actualizado: '+ev.titulo;
+      undo=()=>{Object.assign(ev,prev);saveLocal();rcv();};
+      result='Evento actualizado';
+    }
+  }else if(name==='del_event'){
+    const idx=S.events.findIndex(e=>e.id===args.id);
+    if(idx<0){result='Error: no existe un evento con ese id';}
+    else{
+      const removed=S.events[idx];
+      S.events.splice(idx,1);saveLocal();rcv();
+      label='Evento eliminado: '+removed.titulo;
+      undo=()=>{S.events.splice(idx,0,removed);saveLocal();rcv();};
+      result='Evento eliminado';
+    }
+  }else if(name==='add_venc'){
+    const id=uid();
+    S.venc.push({id,nombre:args.nombre,fecha:args.fecha,cat:args.cat||'otro'});
+    saveLocal();rnVenc();
+    label='Vencimiento agregado: '+args.nombre;
+    undo=()=>{S.venc=S.venc.filter(v=>v.id!==id);saveLocal();rnVenc();};
+    result='Vencimiento agregado';
+  }else if(name==='add_nota'){
+    const id=uid();
+    S.notas.unshift({id,titulo:args.titulo,body:args.body||'',updated:Date.now()});S.curNota=id;
+    saveLocal();rnNotas();
+    label='Nota creada: '+args.titulo;
+    undo=()=>{S.notas=S.notas.filter(n=>n.id!==id);saveLocal();rnNotas();};
+    result='Nota creada';
+  }else if(name==='nav'){
+    sw(args.panel);
+    result='Navegado a '+args.panel;
+  }else{
+    result='Función desconocida: '+name;
+  }
+  return{result,undo,label};
+}
+
+function appendActionNote(label,undoFn){
+  const msgs=document.getElementById('ia-msgs');
+  const d=document.createElement('div');d.className='ia-m sys';d.style.alignSelf='flex-start';
+  d.textContent=label+'  ';
+  if(undoFn){
+    const btn=document.createElement('span');btn.textContent='Deshacer';
+    btn.style.cssText='cursor:pointer;color:var(--accent);text-decoration:underline;margin-left:4px';
+    btn.onclick=()=>{undoFn();btn.textContent='deshecho';btn.style.cursor='default';btn.style.textDecoration='none';btn.onclick=null;toast('Acción deshecha');};
+    d.appendChild(btn);
+  }
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+
 async function sendIA(){
   const inp=document.getElementById('ia-inp');
   const text=inp.value.trim();
   if(!text)return;
   inp.value='';
   appendIA('user',text);
-  S.iaHist.push({role:'user',content:wsContext()+'\n\nUsuario: '+text});
+  S.iaHist.push({role:'user',content:text});
   const typing=appendIATyping();
   try{
-    const SEARCH_KEYWORDS=['noticias','partido','juego','clima','tiempo','resultado','precio','dolar','euro','quien','que paso','cuando','donde'];
-    const needsSearch=SEARCH_KEYWORDS.some(k=>text.toLowerCase().includes(k));
-    let searchCtx='';
-    if(needsSearch){
-      const sres=await webSearch(text);
-      searchCtx='\n\n[Resultados de búsqueda web]:\n'+sres;
-    }
-    const msgs=S.iaHist.slice(-12).filter(m=>m.role==='user'||m.role==='assistant').map(m=>({role:m.role,content:m.content}));
-    const lastMsg=msgs[msgs.length-1];
-    if(lastMsg&&lastMsg.role==='user'&&searchCtx)lastMsg.content+=searchCtx;
-    const res=await fetch('https://workspace-ai-proxy.fdovat.workers.dev/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:800,messages:[{role:'system',content:IA_SYS},...msgs]}),
-    });
-    const data=await res.json();
-    if(data.error){throw new Error(data.error.message||JSON.stringify(data.error));}
-    let reply=data.choices?.[0]?.message?.content||'Sin respuesta';
-    const actions=[];
-    const match=reply.match(/ACTION_JSON:\[(.+?)\](?:\s*$)?/s);
-    if(match){
-      try{
-        const parsed=JSON.parse('['+match[1]+']');
-        parsed.forEach(a=>{
-          let label='';
-          if(a.type==='add_event')label='📅 Agregar evento: '+a.titulo;
-          else if(a.type==='edit_event')label='✏️ Actualizar evento';
-          else if(a.type==='del_event')label='🗑 Eliminar evento';
-          else if(a.type==='add_venc')label='⏰ Agregar vencimiento: '+a.nombre;
-          else if(a.type==='add_nota')label='📝 Crear nota: '+a.titulo;
-          else if(a.type==='add_sheet')label='📊 Datos en planilla';
-          else if(a.type==='nav')label='→ Ir a '+a.panel;
-          if(label)actions.push({...a,label});
-        });
-      }catch(e){}
-      reply=reply.replace(/ACTION_JSON:\[.+?\](?:\s*$)?/s,'').trim();
+    let messages=[{role:'system',content:IA_SYS+'\n\n'+wsContext()},...S.iaHist.slice(-12)];
+    let data=await callGroq(messages);
+    let msg=data.choices?.[0]?.message;
+    if(!msg)throw new Error('Sin respuesta de la IA');
+    const actionNotes=[];
+    let loops=0;
+    while(msg.tool_calls&&msg.tool_calls.length&&loops<4){
+      messages.push({role:'assistant',content:msg.content||null,tool_calls:msg.tool_calls});
+      for(const tc of msg.tool_calls){
+        let args={};
+        try{args=JSON.parse(tc.function.arguments||'{}');}catch(e){}
+        let toolResult;
+        if(tc.function.name==='web_search'){
+          toolResult=await webSearch(args.query||text);
+        }else{
+          const r=execActionTool(tc.function.name,args);
+          toolResult=r.result;
+          if(r.label)actionNotes.push({label:r.label,undo:r.undo});
+        }
+        messages.push({role:'tool',tool_call_id:tc.id,content:String(toolResult)});
+      }
+      data=await callGroq(messages);
+      msg=data.choices?.[0]?.message;
+      loops++;
     }
     typing.remove();
-    if(S.cfg.iaDirectMode&&actions.length){
-      appendIA('bot',reply||'Listo.');
-      actions.forEach(a=>execAction(a));
-    }else{
-      appendIA('bot',reply,actions);
-    }
-    S.iaHist.push({role:'assistant',content:reply+(match?'\n'+match[0]:'')});
+    const reply=msg?.content||'Listo.';
+    appendIA('bot',reply);
+    actionNotes.forEach(n=>appendActionNote(n.label,n.undo));
+    S.iaHist.push({role:'assistant',content:reply});
     S.iaHist=S.iaHist.slice(-20);
   }catch(e){
     typing.remove();
-    const msg=e.message||'';
+    const msgTxt=e.message||'';
     let errMsg='Error al conectar con la IA.';
-    if(msg.includes('401'))errMsg='Error de autenticación con la IA.';
-    else if(msg.includes('429'))errMsg='Límite de requests alcanzado, esperá un momento.';
-    else if(msg.includes('network')||msg.includes('fetch'))errMsg='Sin conexión.';
-    else if(msg)errMsg='Error: '+msg;
+    if(msgTxt.includes('401'))errMsg='Error de autenticación con la IA.';
+    else if(msgTxt.includes('429'))errMsg='Límite de requests alcanzado, esperá un momento.';
+    else if(msgTxt.includes('network')||msgTxt.includes('fetch'))errMsg='Sin conexión.';
+    else if(msgTxt)errMsg='Error: '+msgTxt;
     const errEl=appendIA('bot',errMsg);
     errEl.style.color='var(--red)';
     console.error('IA error:',e);

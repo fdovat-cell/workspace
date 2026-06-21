@@ -2143,11 +2143,12 @@ const IA_SYS=`Sos el asistente personal integrado en este workspace. Hablás en 
 
 Tenés acceso completo al workspace (eventos, vencimientos, notas, planilla) mediante herramientas. Usalas directamente cuando el usuario pida crear, editar, eliminar o navegar - no hace falta pedir confirmación, el usuario puede deshacer cualquier acción después.
 
-Para preguntas sobre el workspace (qué tengo hoy, próximos vencimientos, etc.) usá el contexto que se te da abajo, no inventes datos. Para preguntas sobre temas externos y actuales (noticias, clima, resultados, precios, cotizaciones, cualquier dato que pueda haber cambiado) usá la herramienta web_search en vez de responder de memoria.
+Para preguntas sobre el workspace (qué tengo hoy, próximos vencimientos, etc.) usá el contexto que se te da abajo, no inventes datos. Para preguntas de clima/pronóstico usá SIEMPRE get_weather, nunca web_search. Para otros temas externos y actuales (noticias, resultados, precios, cotizaciones, cualquier dato que pueda haber cambiado) usá web_search.
 Sé útil pero no uses herramientas que el usuario no pidió ni insinuó.`;
 
 const IA_TOOLS=[
-  {type:'function',function:{name:'web_search',description:'Buscar información actual en internet: noticias, clima, resultados deportivos, precios, cotizaciones, cualquier dato que pueda haber cambiado.',parameters:{type:'object',properties:{query:{type:'string',description:'Texto de búsqueda'}},required:['query']}}},
+  {type:'function',function:{name:'web_search',description:'Buscar información actual en internet: noticias, resultados deportivos, precios, cotizaciones, cualquier dato que pueda haber cambiado. NO usar para clima, para eso existe get_weather.',parameters:{type:'object',properties:{query:{type:'string',description:'Texto de búsqueda'}},required:['query']}}},
+  {type:'function',function:{name:'get_weather',description:'Obtener el pronóstico del tiempo (temperatura y probabilidad de lluvia) de una ciudad para hoy o los próximos días.',parameters:{type:'object',properties:{location:{type:'string',description:'Nombre de la ciudad, ej: Miami, Montevideo'},dias:{type:'integer',description:'Días desde hoy: 0=hoy, 1=mañana, 2=pasado mañana, etc. Default 0.'}},required:['location']}}},
   {type:'function',function:{name:'add_event',description:'Agregar un evento al calendario',parameters:{type:'object',properties:{titulo:{type:'string'},fecha:{type:'string',description:'YYYY-MM-DD'},hora:{type:'string',description:'HH:MM'},cat:{type:'string',enum:['trabajo','personal','venc','otro']},notas:{type:'string'}},required:['titulo','fecha']}}},
   {type:'function',function:{name:'edit_event',description:'Editar un evento existente por su id',parameters:{type:'object',properties:{id:{type:'string'},titulo:{type:'string'},fecha:{type:'string'},hora:{type:'string'},cat:{type:'string'}},required:['id']}}},
   {type:'function',function:{name:'del_event',description:'Eliminar un evento existente por su id',parameters:{type:'object',properties:{id:{type:'string'}},required:['id']}}},
@@ -2155,6 +2156,20 @@ const IA_TOOLS=[
   {type:'function',function:{name:'add_nota',description:'Crear una nota',parameters:{type:'object',properties:{titulo:{type:'string'},body:{type:'string'}},required:['titulo']}}},
   {type:'function',function:{name:'nav',description:'Navegar a una sección del workspace',parameters:{type:'object',properties:{panel:{type:'string',enum:['agenda','venc','notas','sheet','calc']}},required:['panel']}}},
 ];
+
+async function getWeather(location,dias){
+  try{
+    const d=Math.max(0,Math.min(parseInt(dias)||0,6));
+    const geo=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(location)+'&count=1&language=es');
+    const gd=await geo.json();
+    if(!gd.results||!gd.results.length)return 'No encontré esa ubicación.';
+    const{latitude,longitude,name,country}=gd.results[0];
+    const f=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+latitude+'&longitude='+longitude+'&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto');
+    const fd=await f.json();
+    if(!fd.daily||!fd.daily.time[d])return 'No pude obtener el pronóstico para esa fecha.';
+    return`Pronóstico para ${name}, ${country} el ${fd.daily.time[d]}: entre ${fd.daily.temperature_2m_min[d]}°C y ${fd.daily.temperature_2m_max[d]}°C, probabilidad de lluvia ${fd.daily.precipitation_probability_max[d]}%.`;
+  }catch(e){return 'Error al obtener el clima: '+e.message;}
+}
 
 async function webSearch(query){
   try{
@@ -2278,6 +2293,8 @@ async function sendIA(){
         let toolResult;
         if(tc.function.name==='web_search'){
           toolResult=await webSearch(args.query||text);
+        }else if(tc.function.name==='get_weather'){
+          toolResult=await getWeather(args.location,args.dias);
         }else{
           const r=execActionTool(tc.function.name,args);
           toolResult=r.result;

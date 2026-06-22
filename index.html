@@ -3023,7 +3023,9 @@ function checkBiometricAvailable(){
     document.getElementById('login-email-wrap').style.display = 'none';
     document.getElementById('login-pass-wrap').style.display = 'none';
     document.getElementById('login-email').setAttribute('autocomplete','off');
+    document.getElementById('login-email').disabled = true;
     document.getElementById('login-pass').setAttribute('autocomplete','off');
+    document.getElementById('login-pass').disabled = true;
     // Mostrar link para volver al formulario si el usuario quiere
     if(!document.getElementById('show-form-link')){
       const lnk = document.createElement('div');
@@ -3039,7 +3041,9 @@ function showLoginForm(){
   document.getElementById('login-email-wrap').style.display = '';
   document.getElementById('login-pass-wrap').style.display = '';
   document.getElementById('login-email').setAttribute('autocomplete','email');
+  document.getElementById('login-email').disabled = false;
   document.getElementById('login-pass').setAttribute('autocomplete','current-password');
+  document.getElementById('login-pass').disabled = false;
   const lnk = document.getElementById('show-form-link');
   if(lnk) lnk.remove();
   document.getElementById('login-email').focus();

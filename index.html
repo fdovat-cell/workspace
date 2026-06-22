@@ -1327,7 +1327,7 @@ async function checkWAOffer(){
     if(document.getElementById('wa-offer'))return;
     const b=document.createElement('div');b.id='wa-offer';
     b.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--accent-border);border-radius:var(--radius-lg);padding:13px 16px;font-family:var(--fb);font-size:12px;color:var(--txt2);z-index:1400;max-width:310px;width:90%;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease;text-align:center';
-    b.innerHTML='<div style="font-size:20px;margin-bottom:6px">🔐</div><div style="font-weight:500;margin-bottom:4px">Activar acceso con huella</div><div style="color:var(--txt3);font-size:11px;margin-bottom:11px">La próxima vez abrirás la app con tu huella o Face ID</div><div style="display:flex;gap:8px;justify-content:center"><button onclick="waRegister().then(ok=>{if(ok)this.closest('#wa-offer').remove();})" style="background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 18px;font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer">Activar</button><button onclick="this.closest('#wa-offer').remove()" style="background:var(--bg3);color:var(--txt2);border:1px solid var(--line);border-radius:7px;padding:7px 14px;font-family:var(--fm);font-size:11px;cursor:pointer">Ahora no</button></div>';
+    b.innerHTML='<div style="font-size:20px;margin-bottom:6px">🔐</div><div style="font-weight:500;margin-bottom:4px">Activar acceso con huella</div><div style="color:var(--txt3);font-size:11px;margin-bottom:11px">La próxima vez abrirás la app con tu huella o Face ID</div><div style="display:flex;gap:8px;justify-content:center"><button onclick="waRegister().then(ok=>{if(ok)this.closest(\'#wa-offer\').remove();})" style="background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 18px;font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer">Activar</button><button onclick="this.closest(\'#wa-offer\').remove()" style="background:var(--bg3);color:var(--txt2);border:1px solid var(--line);border-radius:7px;padding:7px 14px;font-family:var(--fm);font-size:11px;cursor:pointer">Ahora no</button></div>';
     document.body.appendChild(b);
     setTimeout(()=>{if(b.parentNode)b.remove();},12000);
   },2500);
@@ -2001,9 +2001,6 @@ function addV(){
   S.venc.push(venc);
   document.getElementById('vn').value='';document.getElementById('vf').value='';
   saveLocal();rnVenc();toast('Vencimiento agregado');
-,800);
-    }
-  }
 }
 function addReminderForVenc(nombre,fecha){
   const d=new Date(fecha+'T00:00:00');

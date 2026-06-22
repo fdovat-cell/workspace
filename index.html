@@ -4,13 +4,9 @@
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#5b4fff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Workspace">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="theme-color" content="#f8f7f4">
 <title>WORKSPACE</title>
-<link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="#" id="manifest-link">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
@@ -540,7 +536,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 <!-- AUTH -->
 <div id="auth-screen">
   <div class="auth-card">
-    <div class="auth-logo" id="auth-logo-click">W<b>·</b>S  Workspace Personal</div>
+    <div class="auth-logo" id="auth-logo-click" onclick="logoClicks++;clearTimeout(logoTimer);if(logoClicks>=5){logoClicks=0;openAdminPrompt();}else logoTimer=setTimeout(()=>{logoClicks=0;},800);">W<b>·</b>S  Workspace Personal</div>
     <div id="auth-login-wrap">
       <div class="auth-title">Bienvenido</div>
       <div class="auth-sub">Ingresá para acceder a tu workspace desde cualquier dispositivo.</div>
@@ -574,21 +570,6 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
         <button class="auth-btn" onclick="doReset()">Enviar link</button>
         <button onclick="authTab('login')" style="background:none;border:none;font-family:var(--fm);font-size:11px;color:var(--txt3);cursor:pointer;margin-top:6px;text-align:center;width:100%">← Volver</button>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- BIOMETRIC GATE -->
-<div id="bio-screen" style="position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;z-index:9998;flex-direction:column">
-  <div class="auth-card" style="text-align:center">
-    <div class="auth-logo" style="text-align:center">WORK<b>SPACE</b></div>
-    <div style="font-size:48px;margin:16px 0">🔐</div>
-    <div class="auth-title" style="text-align:center">Confirmá tu identidad</div>
-    <div class="auth-sub" style="text-align:center">Usá tu huella o Face ID para continuar</div>
-    <button class="auth-btn" id="bio-btn" onclick="doBioAuth()" style="margin-top:8px">Usar huella / Face ID</button>
-    <div id="bio-err" class="auth-err" style="margin-top:10px;text-align:center"></div>
-    <div style="text-align:center;margin-top:16px">
-      <span onclick="bioSkip()" style="font-family:var(--fm);font-size:11px;color:var(--txt3);cursor:pointer;text-decoration:underline">Saltear por esta vez</span>
     </div>
   </div>
 </div>
@@ -998,11 +979,17 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     <div class="panel" id="p-ia">
       <div class="phdr">
         <div class="pttl">Asistente IA</div>
-
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+          <div class="ia-mode-toggle">
+            <span id="ia-mode-lbl">Confirmar acciones</span>
+            <button class="toggle-sw" id="ia-toggle" onclick="toggleIAMode()" title="Modo directo"></button>
+          </div>
+        </div>
       </div>
       <div id="ia-msgs" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
       <div style="padding:9px 16px;border-top:1px solid var(--line);background:var(--bg2);display:flex;gap:8px">
         <textarea id="ia-inp" placeholder="Escribí lo que necesitás Ej: 'Agendá reunión el jueves a las 10' o '¿Qué tengo esta semana?'" rows="2" style="flex:1;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:7px;padding:7px 10px;font-family:var(--fb);font-size:13px;outline:none;resize:none;line-height:1.5" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendIA()}"></textarea>
+        <button class="badd" id="ia-mic" onclick="toggleIAMic()" style="align-self:flex-end" title="Hablar">🎤</button>
         <button class="badd" onclick="sendIA()" style="align-self:flex-end">Enviar</button>
       </div>
     </div>
@@ -1011,10 +998,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
     <div class="panel" id="p-config">
       <div class="phdr"><div class="pttl">Configuración</div></div>
       <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;max-width:500px">
-
-        <div class="cfg-section" id="bio-cfg-section">
-          <div class="cfg-lbl">Acceso biométrico</div>
-          <div id="bio-cfg-status"></div>
+        <div class="cfg-section">
+          <div class="cfg-lbl">Asistente IA</div>
+          <input type="password" class="fi" id="cfg-api" placeholder="AIza..." oninput="saveConf()">
+          <div style="font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:5px">Solo se guarda en este dispositivo. Necesaria para usar el asistente.</div>
         </div>
         <div class="cfg-section">
           <div class="cfg-lbl">Feriados</div>
@@ -1162,7 +1149,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 // ═
 const SB_URL='https://dscnmmdmsmmqewaszcbe.supabase.co';
 const SB_KEY='sb_publishable_FPI1jiAwKvli3XsorZY34A_BOREEDq1';
-const AI_PROXY='https://workspace-ai-proxy.fdovat.workers.dev';
+const ADMIN_HASH='bfb199b0c132eac87a382234930a3dab050637f07045508daf29c1765522a0cd';
+const SALT='WSP2025';
 
 // Utils — definidas primero para que estén disponibles en todo el script
 const DY=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -1178,7 +1166,7 @@ const CC=(c,p)=>({t:['var(--accent-dim)','var(--accent-border)','var(--accent)']
 const S={
   user:null,userName:'',userEmail:'',
   events:[],venc:[],notas:[],favorites:[],
-  cfg:{fx:42,pais:'uy'},
+  cfg:{apikey:'',fx:42,pais:'uy',iaDirectMode:false},
   sheetData:[],iaHist:[],
   day:new Date(),month:new Date(),
   view:'day',curNota:null,selCat:'trabajo',editEv:null,selRecur:'ninguna',
@@ -1205,170 +1193,41 @@ async function sbSignOut(token){return sbFetch('POST','/auth/v1/logout',null,tok
 async function sbResetPass(email){return sbFetch('POST','/auth/v1/recover',{email});}
 function getToken(){return localStorage.getItem('ws_token');}
 function setToken(t){localStorage.setItem('ws_token',t);}
-function setRefreshToken(t){if(t)localStorage.setItem('ws_refresh_token',t);}
-function getRefreshToken(){return localStorage.getItem('ws_refresh_token');}
-function setTokenExpiry(ts){if(ts)localStorage.setItem('ws_token_expiry',String(ts));}
-function getTokenExpiry(){return parseInt(localStorage.getItem('ws_token_expiry')||'0');}
-function clearToken(){localStorage.removeItem('ws_token');localStorage.removeItem('ws_refresh_token');localStorage.removeItem('ws_token_expiry');localStorage.removeItem('ws_user');}
-async function sbRefreshToken(){
-  const rt=getRefreshToken();if(!rt)return null;
-  try{
-    const r=await sbFetch('POST','/auth/v1/token?grant_type=refresh_token',{refresh_token:rt});
-    if(r&&r.access_token){
-      setToken(r.access_token);
-      setRefreshToken(r.refresh_token||rt);
-      setTokenExpiry(r.expires_at||(Math.floor(Date.now()/1000)+3600));
-      return r.access_token;
-    }
-  }catch(e){}
-  return null;
-}
-async function hashPin(pin){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('ws_bov::'+pin));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-function scheduleTokenRefresh(){
-  const expiry=getTokenExpiry();
-  if(!expiry)return;
-  const msUntilRefresh=Math.max(0,(expiry-300)*1000-Date.now());
-  setTimeout(async()=>{
-    const newToken=await sbRefreshToken();
-    if(newToken)scheduleTokenRefresh();
-    else{clearToken();location.reload();}
-  },msUntilRefresh);
-}
-// ══════════════════════════════════════════
-// WEBAUTHN — acceso biométrico (huella / Face ID)
-// ══════════════════════════════════════════
-const WA_KEY='ws_webauthn_cred';
-let _bioPending={token:null,user:null};
-
-async function waAvailable(){
-  if(!('PublicKeyCredential' in window))return false;
-  try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();}
-  catch(e){return false;}
-}
-function waGetStored(){
-  try{return JSON.parse(localStorage.getItem(WA_KEY)||'null');}catch(e){return null;}
-}
-function waRemove(){
-  localStorage.removeItem(WA_KEY);
-  updateBioConfigUI();
-  toast('Biometría desactivada en este dispositivo');
-}
-async function waRegister(){
-  if(!S.userEmail)return false;
-  try{
-    const challenge=crypto.getRandomValues(new Uint8Array(32));
-    const userId=new TextEncoder().encode(S.userEmail);
-    const cred=await navigator.credentials.create({publicKey:{
-      challenge,
-      rp:{name:'Workspace',id:location.hostname},
-      user:{id:userId,name:S.userEmail,displayName:S.userName||S.userEmail},
-      pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
-      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},
-      timeout:60000,attestation:'none'
-    }});
-    const credId=btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
-    localStorage.setItem(WA_KEY,JSON.stringify({id:credId,email:S.userEmail}));
-    updateBioConfigUI();
-    toast('✓ Huella registrada para este dispositivo');
-    return true;
-  }catch(e){
-    if(e.name!=='NotAllowedError')toast('No se pudo registrar: '+e.message);
-    return false;
-  }
-}
-async function waAuthenticate(){
-  const stored=waGetStored();if(!stored)return false;
-  try{
-    const challenge=crypto.getRandomValues(new Uint8Array(32));
-    const credId=Uint8Array.from(atob(stored.id),c=>c.charCodeAt(0));
-    const assertion=await navigator.credentials.get({publicKey:{
-      challenge,rpId:location.hostname,
-      allowCredentials:[{type:'public-key',id:credId}],
-      userVerification:'required',timeout:60000
-    }});
-    return!!assertion;
-  }catch(e){return false;}
-}
-function showBioScreen(token,user){
-  _bioPending={token,user};
-  const s=document.getElementById('bio-screen');
-  s.style.display='flex';
-  const btn=document.getElementById('bio-btn');
-  btn.textContent='Usar huella / Face ID';btn.disabled=false;
-  document.getElementById('bio-err').classList.remove('show');
-  setTimeout(()=>doBioAuth(),350);
-}
-async function doBioAuth(){
-  const btn=document.getElementById('bio-btn');
-  btn.textContent='⏳ Verificando...';btn.disabled=true;
-  const ok=await waAuthenticate();
-  if(ok){
-    document.getElementById('bio-screen').style.display='none';
-    enterApp(_bioPending.token,_bioPending.user);
-  }else{
-    btn.textContent='Volver a intentar';btn.disabled=false;
-    const err=document.getElementById('bio-err');
-    err.textContent='No se pudo verificar. Intentá de nuevo o saltá por esta vez.';
-    err.classList.add('show');
-  }
-}
-function bioSkip(){
-  sessionStorage.setItem('ws_bio_skip','1');
-  document.getElementById('bio-screen').style.display='none';
-  enterApp(_bioPending.token,_bioPending.user);
-}
-async function checkWAOffer(){
-  if(waGetStored())return;
-  if(!await waAvailable())return;
-  setTimeout(()=>{
-    if(document.getElementById('wa-offer'))return;
-    const b=document.createElement('div');b.id='wa-offer';
-    b.style.cssText='position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--accent-border);border-radius:var(--radius-lg);padding:13px 16px;font-family:var(--fb);font-size:12px;color:var(--txt2);z-index:1400;max-width:310px;width:90%;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease;text-align:center';
-    b.innerHTML='<div style="font-size:20px;margin-bottom:6px">🔐</div><div style="font-weight:500;margin-bottom:4px">Activar acceso con huella</div><div style="color:var(--txt3);font-size:11px;margin-bottom:11px">La próxima vez abrirás la app con tu huella o Face ID</div><div style="display:flex;gap:8px;justify-content:center"><button onclick="waRegister().then(ok=>{if(ok)this.closest(\'#wa-offer\').remove();})" style="background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 18px;font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer">Activar</button><button onclick="this.closest(\'#wa-offer\').remove()" style="background:var(--bg3);color:var(--txt2);border:1px solid var(--line);border-radius:7px;padding:7px 14px;font-family:var(--fm);font-size:11px;cursor:pointer">Ahora no</button></div>';
-    document.body.appendChild(b);
-    setTimeout(()=>{if(b.parentNode)b.remove();},12000);
-  },2500);
-}
-function updateBioConfigUI(){
-  const stored=waGetStored();
-  const wrap=document.getElementById('bio-cfg-status');if(!wrap)return;
-  if(stored){
-    wrap.innerHTML='<span style="color:var(--green);font-size:12px">✓ Activa en este dispositivo</span><button onclick="waRemove()" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red-border);border-radius:6px;padding:4px 12px;font-family:var(--fm);font-size:10px;cursor:pointer;margin-left:8px">Desactivar</button>';
-  }else{
-    wrap.innerHTML='<button id="bio-enable-btn" onclick="doWARegisterFromConfig()" style="background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-family:var(--fh);font-size:12px;font-weight:700;cursor:pointer">Activar huella / Face ID</button><div style="font-family:var(--fm);font-size:10px;color:var(--txt3);margin-top:6px">Solo este dispositivo. Podés desactivarlo cuando quieras.</div>';
-  }
-}
-async function doWARegisterFromConfig(){
-  const btn=document.getElementById('bio-enable-btn');
-  if(btn){btn.textContent='⏳ Esperando...';btn.disabled=true;}
-  const ok=await waRegister();
-  if(!ok&&btn){btn.textContent='Activar huella / Face ID';btn.disabled=false;}
-}
-
+function clearToken(){localStorage.removeItem('ws_token');localStorage.removeItem('ws_user');}
 async function dbGet(table,filter=''){const token=getToken();return sbFetch('GET','/rest/v1/'+table+'?'+filter+'&select=*',null,token);}
 
 // ═
 // ACTIVATION CODE SYSTEM
 // ═
-// ACTIVATION CODE SYSTEM — validado server-side en el Worker, no hay fórmula en el cliente
-// ═
+function h4(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h).toString(36).slice(0,4).toUpperCase().padStart(4,'0');}
 function fmtCode(inp){let v=inp.value.replace(/[^A-Z0-9]/gi,'').toUpperCase();if(v.length>3)v=v.slice(0,3)+'-'+v.slice(3);if(v.length>8)v=v.slice(0,8)+'-'+v.slice(8);inp.value=v.slice(0,13);}
-async function redeemCode(code,email){
-  try{
-    const r=await fetch(AI_PROXY+'/redeem-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,email})});
-    const d=await r.json();
-    if(!r.ok||!d.ok)return{valid:false,error:d.error||'Código de activación inválido.'};
-    return{valid:true,tier:d.tier,dias:d.dias};
-  }catch(e){return{valid:false,error:'No se pudo validar el código. Revisá tu conexión.'};}
+function mkCode(tier,dias){
+  const tc={free:'F',pro:'P',premium:'X'}[tier]||'P';
+  const dc=String(dias).padStart(3,'0');
+  const rnd=Math.random().toString(36).slice(2,6).toUpperCase();
+  const chk=h4(tc+dc+rnd+SALT);
+  return'WSP-'+chk+'-'+rnd;
+}
+function chkCode(code){
+  const cl=code.trim().toUpperCase().replace(/-/g,'');
+  if(cl.length!==11||!cl.startsWith('WSP'))return null;
+  const chk=cl.slice(3,7),rnd=cl.slice(7,11);
+  for(const t of['F','P','X'])for(const d of['000','030','090','365']){
+    if(h4(t+d+rnd+SALT)===chk){
+      const tm={F:'free',P:'pro',X:'premium'};
+      return{tier:tm[t],dias:parseInt(d),code,valid:true};
+    }
+  }
+  return null;
 }
 
 // ═
-// ADMIN  acceso por click múltiple en logo (auth screen) — login validado en el Worker
+// ADMIN  acceso por doble click en logo (auth screen)
 // ═
-let adminToken=null;
+async function sha256(msg){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 let logoClicks=0,logoTimer=null;
 function initLogoClick(){
   const el=document.getElementById('auth-logo-click');
@@ -1385,43 +1244,32 @@ function openAdminPrompt(){
   const ov=document.createElement('div');
   ov.id='admin-modal-ov';
   ov.style.cssText='position:fixed;inset:0;background:#00000088;z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:340px;max-width:94vw;box-shadow:var(--shadow-lg)"><div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:18px">Acceso Admin</div><label style="font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block">Clave</label><input type="password" id="adm-k" placeholder="••••••••" autocomplete="current-password" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fb);font-size:13px;outline:none;margin-bottom:12px"><div id="adm-err" style="font-family:var(--fm);font-size:11px;color:var(--red);background:var(--red-dim);border:1px solid var(--red-border);border-radius:7px;padding:7px 11px;display:none;margin-bottom:12px">Clave incorrecta</div><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="document.getElementById(\'admin-modal-ov\').remove()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button><button id="adm-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:500;cursor:pointer">Ingresar</button></div></div>';
+  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:340px;max-width:94vw;box-shadow:var(--shadow-lg)"><div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:18px">Acceso Admin</div><label style="font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block">Clave</label><input type="password" id="adm-k" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" autocomplete="current-password" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fb);font-size:13px;outline:none;margin-bottom:12px"><div id="adm-err" style="font-family:var(--fm);font-size:11px;color:var(--red);background:var(--red-dim);border:1px solid var(--red-border);border-radius:7px;padding:7px 11px;display:none;margin-bottom:12px">Clave incorrecta</div><div style="display:flex;gap:8px;justify-content:flex-end"><button onclick="document.getElementById(\'admin-modal-ov\').remove()" style="background:var(--bg3);border:1px solid var(--line2);color:var(--txt2);border-radius:8px;padding:8px 16px;font-family:var(--fm);font-size:11px;cursor:pointer">Cancelar</button><button id="adm-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:500;cursor:pointer">Ingresar</button></div></div>';
   document.body.appendChild(ov);
   const inp=document.getElementById('adm-k');
   inp.focus();
   async function checkAdminKey(){
     const k=inp.value;
     if(!k)return;
-    const okBtn=document.getElementById('adm-ok');
-    okBtn.textContent='Verificando…';okBtn.disabled=true;
-    try{
-      const r=await fetch(AI_PROXY+'/admin-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:k})});
-      const d=await r.json();
-      okBtn.textContent='Ingresar';okBtn.disabled=false;
-      if(r.ok&&d.ok&&d.token){
-        adminToken=d.token;
-        ov.remove();
-        document.getElementById('auth-screen').style.display='none';
-        document.getElementById('admin-screen').classList.add('open');
-        loadUsers();
-      }else{
-        document.getElementById('adm-err').style.display='block';
-        inp.value='';inp.focus();
-      }
-    }catch(e){
-      okBtn.textContent='Ingresar';okBtn.disabled=false;
-      document.getElementById('adm-err').textContent='No se pudo conectar. Probá de nuevo.';
+    const h=await sha256(k+SALT);
+    if(h===ADMIN_HASH){
+      ov.remove();
+      document.getElementById('auth-screen').style.display='none';
+      document.getElementById('admin-screen').classList.add('open');
+      loadUsers();
+    }else{
       document.getElementById('adm-err').style.display='block';
+      inp.value='';inp.focus();
     }
   }
   document.getElementById('adm-ok').onclick=checkAdminKey;
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkAdminKey();});
   ov.addEventListener('click',e=>{if(e.target===ov)ov.remove();});
 }
-function closeAdmin(){adminToken=null;document.getElementById('admin-screen').classList.remove('open');document.getElementById('auth-screen').style.display='flex';}
+function closeAdmin(){document.getElementById('admin-screen').classList.remove('open');document.getElementById('auth-screen').style.display='flex';}
 
 // ADM también accesible desde topbar (solo si logged in)
-// Pero lo quitamos del topbar  triple click en el logo del topbar
+// Pero lo quitamos del topbar  triple click en el logo del topbar
 let topLogoClicks=0,topLogoTimer=null;
 document.getElementById('logo').addEventListener('click',()=>{
   topLogoClicks++;
@@ -1431,27 +1279,15 @@ document.getElementById('logo').addEventListener('click',()=>{
 });
 
 let lastCode='';
-async function genCode(){
+function genCode(){
   const dest=document.getElementById('gen-dest').value.trim();
   const tier=document.getElementById('gen-tier').value;
   const dias=parseInt(document.getElementById('gen-dias').value);
-  const btn=document.querySelector('.gen-btn');
-  const prevTxt=btn.textContent;
-  btn.textContent='Generando…';btn.disabled=true;
-  try{
-    const r=await fetch(AI_PROXY+'/gen-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:adminToken,tier,dias,dest})});
-    const d=await r.json();
-    btn.textContent=prevTxt;btn.disabled=false;
-    if(!r.ok||!d.ok){toast(d.error||'No se pudo generar el código');return;}
-    lastCode=d.code;
-    const exp=dias===0?'Sin vencimiento':'Válido '+dias+' días';
-    document.getElementById('code-val').textContent=d.code;
-    document.getElementById('code-info').textContent='Destinatario: '+(dest||'—')+'\nTier: '+tier+'\nVencimiento: '+exp+'\nFecha: '+new Date().toLocaleString('es-UY');
-    document.getElementById('code-box').classList.add('show');
-  }catch(e){
-    btn.textContent=prevTxt;btn.disabled=false;
-    toast('No se pudo conectar con el servidor');
-  }
+  const code=mkCode(tier,dias);lastCode=code;
+  const exp=dias===0?'Sin vencimiento':'Válido '+dias+' días';
+  document.getElementById('code-val').textContent=code;
+  document.getElementById('code-info').textContent='Destinatario: '+(dest||'—')+'\nTier: '+tier+'\nVencimiento: '+exp+'\nFecha: '+new Date().toLocaleString('es-UY');
+  document.getElementById('code-box').classList.add('show');
 }
 async function cpCode(){navigator.clipboard.writeText(lastCode).then(()=>toast('Código copiado ✓'));}
 async function loadUsers(){
@@ -1497,8 +1333,6 @@ async function doLogin(){
   document.querySelector('#auth-form-login .auth-btn').textContent='Ingresar';
   if(res&&res.access_token){
     setToken(res.access_token);
-    setRefreshToken(res.refresh_token);
-    setTokenExpiry(res.expires_at);
     localStorage.setItem('ws_user',JSON.stringify({email,name:res.user?.user_metadata?.name||email.split('@')[0]}));
     enterApp(res.access_token,res.user);
   }else{
@@ -1514,18 +1348,16 @@ async function doRegister(){
   hideErr('reg-err');hideErr('reg-ok');
   if(!code||!name||!email||!pass){showErr('reg-err','Completá todos los campos.');return;}
   if(pass.length<6){showErr('reg-err','La contraseña debe tener al menos 6 caracteres.');return;}
-  const btn=document.querySelector('#auth-form-register .auth-btn');
-  btn.textContent='Verificando código…';
-  const cdata=await redeemCode(code,email);
-  if(!cdata.valid){btn.textContent='Crear cuenta';showErr('reg-err',cdata.error||'Código de activación inválido.');return;}
-  btn.textContent='Creando cuenta…';
+  const cdata=chkCode(code);
+  if(!cdata){showErr('reg-err','Código de activación inválido.');return;}
+  document.querySelector('#auth-form-register .auth-btn').textContent='Creando cuenta';
   const res=await sbSignUp(email,pass,{name,tier:cdata.tier,code}).catch(()=>null);
-  btn.textContent='Crear cuenta';
+  document.querySelector('#auth-form-register .auth-btn').textContent='Crear cuenta';
   if(res&&(res.user||res.id)){
     showOk('reg-ok','¡Cuenta creada! Revisá tu email para confirmar, luego ingresá.');
     setTimeout(()=>authTab('login'),3000);
   }else{
-    showErr('reg-err',res?.error_description||res?.msg||'Error al crear la cuenta. Tu código ya fue consumido — contactanos si necesitás uno nuevo.');
+    showErr('reg-err',res?.error_description||res?.msg||'Error al crear la cuenta.');
   }
 }
 async function doReset(){
@@ -1544,12 +1376,6 @@ async function checkSession(){
   if(hash.includes('access_token')){
     const params=new URLSearchParams(hash.slice(1));
     const token=params.get('access_token');
-    const type=params.get('type');
-    if(token&&type==='recovery'){
-      window.history.replaceState(null,'',window.location.pathname);
-      showResetPasswordPrompt(token);
-      return;
-    }
     if(token){
       setToken(token);
       const ui=await sbFetch('GET','/auth/v1/user',null,token).catch(()=>null);
@@ -1560,66 +1386,13 @@ async function checkSession(){
       }
     }
   }
-  let token=getToken();
+  const token=getToken();
   if(!token){showAuth();return;}
-  const expiry=getTokenExpiry();
-  if(expiry&&Date.now()/1000>expiry-60){
-    const newToken=await sbRefreshToken();
-    if(newToken)token=newToken;
-    else{clearToken();showAuth();return;}
-  }
   const ui=await sbFetch('GET','/auth/v1/user',null,token).catch(()=>null);
-  if(ui&&ui.email){
-    const waStored=waGetStored();
-    const skipBio=sessionStorage.getItem('ws_bio_skip');
-    if(waStored&&waStored.email===ui.email&&!skipBio){showBioScreen(token,ui);}
-    else{enterApp(token,ui);}
-  }else{
-    const newToken=await sbRefreshToken();
-    if(newToken){const ui2=await sbFetch('GET','/auth/v1/user',null,newToken).catch(()=>null);if(ui2&&ui2.email){enterApp(newToken,ui2);return;}}
-    clearToken();showAuth();
-  }
+  if(ui&&ui.email)enterApp(token,ui);
+  else{clearToken();showAuth();}
 }
 function showAuth(){document.getElementById('auth-screen').style.display='flex';}
-
-// Pantalla para definir contraseña nueva tras click en el link de "olvidé mi contraseña"
-function showResetPasswordPrompt(recoveryToken){
-  showAuth();
-  if(document.getElementById('reset-pw-modal-ov'))return;
-  const ov=document.createElement('div');
-  ov.id='reset-pw-modal-ov';
-  ov.style.cssText='position:fixed;inset:0;background:#00000088;z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line2);border-radius:var(--radius-xl);padding:30px 28px;width:340px;max-width:94vw;box-shadow:var(--shadow-lg)"><div style="font-family:var(--fh);font-size:17px;font-weight:800;color:var(--txt);margin-bottom:8px">Nueva contraseña</div><div style="font-family:var(--fb);font-size:12px;color:var(--txt2);margin-bottom:18px">Elegí tu nueva contraseña para continuar.</div><label style="font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block">Contraseña nueva</label><input type="password" id="reset-pw-new" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 13px;font-family:var(--fb);font-size:13px;outline:none;margin-bottom:12px"><div id="reset-pw-err" style="font-family:var(--fm);font-size:11px;color:var(--red);background:var(--red-dim);border:1px solid var(--red-border);border-radius:7px;padding:7px 11px;display:none;margin-bottom:12px"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button id="reset-pw-ok" style="background:var(--accent);border:none;color:#fff;border-radius:8px;padding:8px 18px;font-family:var(--fm);font-size:11px;font-weight:500;cursor:pointer">Guardar contraseña</button></div></div>';
-  document.body.appendChild(ov);
-  const inp=document.getElementById('reset-pw-new');
-  inp.focus();
-  async function saveNewPassword(){
-    const pw=inp.value;
-    const errEl=document.getElementById('reset-pw-err');
-    errEl.style.display='none';
-    if(!pw||pw.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres.';errEl.style.display='block';return;}
-    const okBtn=document.getElementById('reset-pw-ok');
-    okBtn.textContent='Guardando…';okBtn.disabled=true;
-    try{
-      const r=await sbFetch('PUT','/auth/v1/user',{password:pw},recoveryToken);
-      okBtn.textContent='Guardar contraseña';okBtn.disabled=false;
-      if(r&&!r.error){
-        ov.remove();
-        toast('Contraseña actualizada ✓ Ya podés ingresar.');
-        authTab('login');
-      }else{
-        errEl.textContent=r?.error_description||r?.msg||'No se pudo actualizar. El link puede haber vencido — pedí uno nuevo.';
-        errEl.style.display='block';
-      }
-    }catch(e){
-      okBtn.textContent='Guardar contraseña';okBtn.disabled=false;
-      errEl.textContent='No se pudo conectar. Probá de nuevo.';
-      errEl.style.display='block';
-    }
-  }
-  document.getElementById('reset-pw-ok').onclick=saveNewPassword;
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')saveNewPassword();});
-}
 function hideAuth(){document.getElementById('auth-screen').style.display='none';}
 async function enterApp(token,user){
   setTimeout(()=>{requestNotifPerm();setTimeout(checkVencNotifs,2000);},1500);
@@ -1645,10 +1418,6 @@ async function enterApp(token,user){
     if(loaded){applyTheme(S.theme);loadFeriados();renderDay();rnVenc();renderHome();toast("✓ Datos sincronizados");}
   });
   // Briefing diferido  no invasivo, solo si hay algo relevante
-  scheduleTokenRefresh();
-  checkWAOffer();
-  initRealtimeSync();
-  setTimeout(updateBioConfigUI,400);
 }
 async function doLogout(){
   const token=getToken();
@@ -1674,7 +1443,6 @@ function showUserMenu(){sw('config');}
 let syncTimer=null;
 
 function saveLocal(){
-  _lastLocalSave=Date.now();
   localStorage.setItem('ws3_data',JSON.stringify({
     events:S.events,venc:S.venc,notas:S.notas,cfg:S.cfg,sheetData:S.sheetData,theme:S.theme,favorites:S.favorites
   }));
@@ -1746,8 +1514,11 @@ function loadLocal(){
     if(d.sheetData)S.sheetData=d.sheetData;
     if(d.theme)S.theme=d.theme;
     if(S.cfg.fx)document.getElementById('fxr').value=S.cfg.fx;
+    if(S.cfg.apikey)document.getElementById('cfg-api').value=S.cfg.apikey;
     if(S.cfg.fx)document.getElementById('cfg-fx').value=S.cfg.fx;
     if(S.cfg.pais)document.getElementById('cfg-pais').value=S.cfg.pais;
+    if(S.cfg.iaDirectMode)document.getElementById('ia-toggle').classList.toggle('on',S.cfg.iaDirectMode);
+    updateIAModeLabel();
   }catch(e){}
 }
 
@@ -2001,6 +1772,20 @@ function addV(){
   S.venc.push(venc);
   document.getElementById('vn').value='';document.getElementById('vf').value='';
   saveLocal();rnVenc();toast('Vencimiento agregado');
+  // Sugerir recordatorio via IA si hay API key
+  if(S.cfg.apikey){
+    const days=du(f);
+    if(days>3){
+      const suggestMsg=`Agregaste el vencimiento "${n}" para el ${f}. ¿Querés que te cree un recordatorio en el calendario 3 días antes?`;
+      setTimeout(()=>{
+        const chip=document.createElement('div');
+        chip.style.cssText='position:fixed;bottom:70px;right:20px;background:var(--bg2);border:1px solid var(--accent-border);border-radius:var(--radius-lg);padding:12px 14px;font-family:var(--fm);font-size:11px;color:var(--txt2);z-index:1500;max-width:280px;box-shadow:var(--shadow-lg);animation:fadeUp .2s ease';
+        chip.innerHTML=`<div style="color:var(--accent);margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:.05em">✦ Sugerencia de Claude</div><div style="margin-bottom:9px;line-height:1.5">${suggestMsg}</div><div style="display:flex;gap:7px"><button onclick="addReminderForVenc('${n}','${f}');this.closest('div[style]').remove()" style="background:var(--accent);color:#fff;border:none;border-radius:5px;padding:4px 11px;font-family:var(--fm);font-size:10px;cursor:pointer">Sí, agregar</button><button onclick="this.closest('div[style]').remove()" style="background:transparent;border:1px solid var(--line);color:var(--txt3);border-radius:5px;padding:4px 11px;font-family:var(--fm);font-size:10px;cursor:pointer">No gracias</button></div>`;
+        document.body.appendChild(chip);
+        setTimeout(()=>{if(chip.parentNode)chip.remove();},10000);
+      },800);
+    }
+  }
 }
 function addReminderForVenc(nombre,fecha){
   const d=new Date(fecha+'T00:00:00');
@@ -2277,6 +2062,16 @@ function initDrop(){
 // ═
 // IA  CLAUDE INTEGRADO AL WORKSPACE
 // ═
+function toggleIAMode(){
+  S.cfg.iaDirectMode=!S.cfg.iaDirectMode;
+  document.getElementById('ia-toggle').classList.toggle('on',S.cfg.iaDirectMode);
+  updateIAModeLabel();
+  saveLocal();
+  toast(S.cfg.iaDirectMode?'Modo directo activado  Claude aplica acciones sin confirmar':'Modo confirmación activado');
+}
+function updateIAModeLabel(){
+  document.getElementById('ia-mode-lbl').textContent=S.cfg.iaDirectMode?'Modo directo':'Confirmar acciones';
+}
 
 function initIA(){
   const msgs=document.getElementById('ia-msgs');msgs.innerHTML='';
@@ -2469,6 +2264,33 @@ function appendActionNote(label,undoFn){
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
 }
 
+let iaRecognizer=null,iaListening=false;
+function toggleIAMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Tu navegador no soporta dictado por voz');return;}
+  const btn=document.getElementById('ia-mic');
+  if(iaListening){
+    if(iaRecognizer)iaRecognizer.stop();
+    return;
+  }
+  iaRecognizer=new SR();
+  iaRecognizer.lang='es-UY';
+  iaRecognizer.interimResults=false;
+  iaRecognizer.maxAlternatives=1;
+  iaRecognizer.onstart=()=>{iaListening=true;btn.classList.add('on');btn.textContent='⏹';};
+  iaRecognizer.onresult=(ev)=>{
+    const transcript=ev.results[0][0].transcript;
+    const inp=document.getElementById('ia-inp');
+    inp.value=(inp.value?inp.value+' ':'')+transcript;
+  };
+  iaRecognizer.onerror=(ev)=>{
+    if(ev.error==='not-allowed')toast('Necesito permiso para usar el micrófono');
+    else if(ev.error!=='no-speech')toast('Error de dictado: '+ev.error);
+  };
+  iaRecognizer.onend=()=>{iaListening=false;btn.classList.remove('on');btn.textContent='🎤';};
+  try{iaRecognizer.start();}catch(e){toast('No se pudo iniciar el micrófono');}
+}
+
 async function sendIA(){
   const inp=document.getElementById('ia-inp');
   const text=inp.value.trim();
@@ -2543,6 +2365,7 @@ async function sendIA(){
 // CONFIG
 // ═
 function saveConf(){
+  S.cfg.apikey=document.getElementById('cfg-api').value;
   S.cfg.fx=parseFloat(document.getElementById('cfg-fx').value)||42;
   S.cfg.pais=document.getElementById('cfg-pais').value;
   document.getElementById('fxr').value=S.cfg.fx;
@@ -2611,66 +2434,12 @@ function reloadFeriados(){
 }
 
 // ═
-// PWA — Service Worker
+// PWA
 // ═
 function regPWA(){
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  }
+  const m={name:'Workspace',short_name:'WS',start_url:'./',display:'standalone',theme_color:'#f5f4f0',background_color:'#f5f4f0',icons:[{src:'https://placehold.co/192x192/5b4fff/ffffff?text=WS',sizes:'192x192',type:'image/png'}]};
+  document.getElementById('manifest-link').href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
 }
-
-// ══════════════════════════════════════════
-// REALTIME SYNC — Supabase WebSocket
-// ══════════════════════════════════════════
-let _rtSock=null,_rtHb=null,_rtRecon=null;
-let _lastLocalSave=0;
-
-function initRealtimeSync(){
-  if(!S.userEmail||!getToken())return;
-  if(_rtSock&&_rtSock.readyState<=1)return; // ya conectado
-  function connect(){
-    try{
-      _rtSock=new WebSocket(`wss://dscnmmdmsmmqewaszcbe.supabase.co/realtime/v1/websocket?apikey=${SB_KEY}&vsn=1.0.0`);
-      _rtSock.onopen=()=>{
-        _rtHb=setInterval(()=>{
-          if(_rtSock.readyState===1)_rtSock.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:null}));
-        },25000);
-        _rtSock.send(JSON.stringify({
-          topic:'realtime:db',event:'phx_join',
-          payload:{
-            config:{
-              broadcast:{self:false},
-              postgres_changes:[{event:'UPDATE',schema:'public',table:'ws_userdata',filter:`user_email=eq.${S.userEmail}`}]
-            },
-            access_token:getToken()
-          },ref:'1'
-        }));
-      };
-      _rtSock.onmessage=e=>{
-        try{
-          const msg=JSON.parse(e.data);
-          const isChange=msg.event==='postgres_changes'||
-            (msg.payload&&msg.payload.type==='UPDATE'&&msg.payload.table==='ws_userdata');
-          if(isChange&&Date.now()-_lastLocalSave>3500){
-            clearTimeout(_rtReloadTimer);
-            _rtReloadTimer=setTimeout(()=>{
-              loadFromCloud().then(loaded=>{
-                if(loaded){applyTheme(S.theme);loadFeriados();rcv();rnVenc();
-                  if(document.getElementById('p-home').classList.contains('active'))renderHome();
-                  toast('↺ Datos sincronizados',1800);
-                }
-              });
-            },1000);
-          }
-        }catch(err){}
-      };
-      _rtSock.onclose=()=>{clearInterval(_rtHb);_rtRecon=setTimeout(connect,6000);};
-      _rtSock.onerror=()=>_rtSock.close();
-    }catch(e){}
-  }
-  connect();
-}
-let _rtReloadTimer;
 
 // ═
 // TOAST
@@ -2682,9 +2451,7 @@ function toast(msg,ms=2400){const t=document.getElementById('toast');t.textConte
 // ══════════════════════════════════════════
 async function fetchClima(){
   try{
-    const _cp={uy:{lat:-34.9,lon:-56.17,tz:'America/Montevideo'},ar:{lat:-34.6,lon:-58.38,tz:'America/Argentina/Buenos_Aires'}};
-    const _c=_cp[S.cfg&&S.cfg.pais||'uy']||_cp.uy;
-    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${_c.lat}&longitude=${_c.lon}&current=temperature_2m,weathercode,windspeed_10m&timezone=${encodeURIComponent(_c.tz)}`);
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=-34.9&longitude=-56.17&current=temperature_2m,weathercode,windspeed_10m&timezone=America/Montevideo');
     const d=await r.json();
     const temp=Math.round(d.current.temperature_2m);
     const wind=Math.round(d.current.windspeed_10m);
@@ -2834,17 +2601,9 @@ function _updPinDots(){
   }
 }
 
-async function _checkBovPin(){
+function _checkBovPin(){
   const stored=localStorage.getItem('ws_bov_pin');
-  const input=bovPinBuffer;
-  let match=false;
-  if(stored&&stored.length===64){
-    match=(await hashPin(input))===stored;
-  }else{
-    match=input===stored;
-    if(match)hashPin(input).then(h=>localStorage.setItem('ws_bov_pin',h));
-  }
-  if(match){
+  if(bovPinBuffer===stored){
     bovUnlocked=true;
     document.getElementById('boveda-lock').classList.remove('open');
     _enterBovPanel();
@@ -2861,7 +2620,7 @@ function bovSetupConfirm(){
   const errEl=document.getElementById('bov-setup-err');
   if(!/^\d{4}$/.test(p1)){errEl.textContent='El PIN debe tener exactamente 4 dígitos.';return;}
   if(p1!==p2){errEl.textContent='Los PINs no coinciden.';return;}
-  hashPin(p1).then(h=>localStorage.setItem('ws_bov_pin',h));
+  localStorage.setItem('ws_bov_pin',p1);
   bovUnlocked=true;
   document.getElementById('boveda-lock').classList.remove('open');
   _enterBovPanel();
@@ -3055,7 +2814,7 @@ function kpalSearch(){
     html+=evHits.map(e=>{
       const d=new Date(e.fecha+'T00:00');
       const label=e.fecha===today?'Hoy':d.toLocaleDateString('es-UY',{day:'numeric',month:'short'});
-      return`<div class="kpr" onclick="kpalClose();S.day=new Date('${e.fecha}T00:00');swv('day',null);sw('agenda')"><div class="kpr-ico agenda">📅</div><div class="kpr-main"><div class="kpr-ttl">${e.titulo}</div><div class="kpr-sub">${label} · ${e.hora||''} · ${e.cat||''}</div></div></div>`;
+      return`<div class="kpr" onclick="kpalClose();S.curDay=new Date('${e.fecha}T00:00');sw('agenda')"><div class="kpr-ico agenda">📅</div><div class="kpr-main"><div class="kpr-ttl">${e.titulo}</div><div class="kpr-sub">${label} · ${e.hora||''} · ${e.cat||''}</div></div></div>`;
     }).join('');count+=evHits.length;
   }
 

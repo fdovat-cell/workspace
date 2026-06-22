@@ -545,6 +545,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
         <button class="auth-tab" onclick="authTab('register')">Activar workspace</button>
       </div>
       <div class="auth-form active" id="auth-form-login">
+        <div id="biometric-wrap" style="display:none;margin-bottom:4px">
+          <button class="auth-btn" id="biometric-btn" onclick="doBiometric()" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);font-size:15px">&#x1F510; Ingresar con huella</button>
+          <div class="auth-divider" style="margin:10px 0">&#x2014; o ingres&#xe1; con email &#x2014;</div>
+        </div>
         <div><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="tu@email.com" autocomplete="email"></div>
         <div><label class="auth-label">Contraseña</label><input type="password" class="auth-input" id="login-pass" placeholder="" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <div class="auth-err" id="login-err"></div>
@@ -1128,6 +1132,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
         <button class="rcpill" data-rc="anual">Cada año</button>
       </div>
     </div>
+    <div class="fr" style="flex-direction:row;align-items:center;gap:10px;margin-bottom:4px">
+      <label style="font-size:10px;font-family:var(--fm);color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;display:flex;align-items:center;gap:8px">
+        <input type="checkbox" id="ev-alarm" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
+        &#x1F514; Activar alarma Telegram
+      </label>
+    </div>
     <div class="mbtns">
       <button class="bdanger" id="ev-del-btn" onclick="delEvModal()" style="display:none">Eliminar</button>
       <button class="bcancel" onclick="closeM()">Cancelar</button>
@@ -1188,12 +1198,24 @@ async function sbFetch(method,path,body=null,token=null){
 }
 async function sbSignUp(email,pass,meta={}){return sbFetch('POST','/auth/v1/signup',{email,password:pass,data:meta});}
 async function sbSignIn(email,pass){return sbFetch('POST','/auth/v1/token?grant_type=password',{email,password:pass});}
+async function sbRefreshToken(refreshToken){
+  return sbFetch('POST','/auth/v1/token?grant_type=refresh_token',{refresh_token:refreshToken});
+}
 async function sbSignInGoogle(){window.location.href=SB_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(window.location.href);}
 async function sbSignOut(token){return sbFetch('POST','/auth/v1/logout',null,token);}
 async function sbResetPass(email){return sbFetch('POST','/auth/v1/recover',{email});}
-function getToken(){return localStorage.getItem('ws_token');}
-function setToken(t){localStorage.setItem('ws_token',t);}
-function clearToken(){localStorage.removeItem('ws_token');localStorage.removeItem('ws_user');}
+function getToken(){return sessionStorage.getItem('ws_token');}
+function setToken(t){sessionStorage.setItem('ws_token',t);}
+function clearToken(){
+  sessionStorage.removeItem('ws_token');
+  sessionStorage.removeItem('ws_user');
+  localStorage.removeItem('ws_token');
+  localStorage.removeItem('ws_user');
+  localStorage.removeItem('ws_refresh_token');
+  localStorage.removeItem('ws_biometric_token');
+  localStorage.removeItem('ws_biometric_email');
+  localStorage.removeItem('ws_biometric_cred');
+}
 async function dbGet(table,filter=''){const token=getToken();return sbFetch('GET','/rest/v1/'+table+'?'+filter+'&select=*',null,token);}
 
 // ═
@@ -1333,8 +1355,11 @@ async function doLogin(){
   document.querySelector('#auth-form-login .auth-btn').textContent='Ingresar';
   if(res&&res.access_token){
     setToken(res.access_token);
-    localStorage.setItem('ws_user',JSON.stringify({email,name:res.user?.user_metadata?.name||email.split('@')[0]}));
+    if(res.refresh_token) localStorage.setItem('ws_refresh_token', res.refresh_token);
+    sessionStorage.setItem('ws_user',JSON.stringify({email,name:res.user?.user_metadata?.name||email.split('@')[0]}));
+    updateBiometricToken(res.access_token);
     enterApp(res.access_token,res.user);
+    setTimeout(()=>ofrecerRegistrarHuella(email), 2000);
   }else{
     showErr('login-err',res?.error_description||res?.msg||'Email o contraseña incorrectos.');
   }
@@ -1392,14 +1417,14 @@ async function checkSession(){
   if(ui&&ui.email)enterApp(token,ui);
   else{clearToken();showAuth();}
 }
-function showAuth(){document.getElementById('auth-screen').style.display='flex';}
+function showAuth(){document.getElementById('auth-screen').style.display='flex';checkBiometricAvailable();}
 function hideAuth(){document.getElementById('auth-screen').style.display='none';}
 async function enterApp(token,user){
   setTimeout(()=>{requestNotifPerm();setTimeout(checkVencNotifs,2000);},1500);
   hideAuth();
   document.getElementById('topbar').style.display='flex';
   document.getElementById('layout').style.display='flex';
-  const stored=JSON.parse(localStorage.getItem('ws_user')||'{}');
+  const stored=JSON.parse(sessionStorage.getItem('ws_user')||localStorage.getItem('ws_user')||'{}');
   S.userName=user?.user_metadata?.name||stored.name||user?.email?.split('@')[0]||'Usuario';
   S.userEmail=user?.email||stored.email||'';
   document.getElementById('user-av').textContent=S.userName[0].toUpperCase();
@@ -1630,7 +1655,8 @@ function renderDay(){
     evs.filter(e=>parseInt(e.hora)===h).forEach(ev=>{
       const ch=document.createElement('div');ch.className='ec '+catClass(ev.cat);
       ch.draggable=true;ch.dataset.id=ev.id;
-      ch.innerHTML='<span class="et">'+ev.hora+'</span><span>'+ev.titulo+'</span><button class="ec-del" onclick="event.stopPropagation();quickDelEv(\''+ev.id+'\')">✕</button>';
+      const alarmIcon=ev.alarm?'<span title="Alarma activa" style="font-size:11px">🔔</span>':'';
+      ch.innerHTML='<span class="et">'+ev.hora+'</span><span>'+ev.titulo+'</span>'+alarmIcon+'<button class="ec-del" onclick="event.stopPropagation();quickDelEv(\''+ev.id+'\')">✕</button>';
       ch.addEventListener('dragstart',e=>{S.dragEvId=ev.id;ch.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
       ch.addEventListener('dragend',()=>{S.dragEvId=null;ch.classList.remove('dragging');});
       ch.addEventListener('click',()=>{if(!S.dragEvId)openEditEv(ev.id);});
@@ -1710,6 +1736,7 @@ function openAddEvent(fecha,hora){
   document.getElementById('ev-h').value=hora||'09:00';
   document.getElementById('ev-n').value='';
   document.getElementById('ev-del-btn').style.display='none';
+  document.getElementById('ev-alarm').checked=false;
   setSC('trabajo');setRC('ninguna');
   document.getElementById('modal-ov').classList.add('open');
   setTimeout(()=>document.getElementById('ev-t').focus(),100);
@@ -1723,6 +1750,7 @@ function openEditEv(id){
   document.getElementById('ev-h').value=ev.hora;
   document.getElementById('ev-n').value=ev.notas||'';
   document.getElementById('ev-del-btn').style.display='';
+  document.getElementById('ev-alarm').checked=!!(ev.alarm);
   setSC(ev.cat||'trabajo');setRC(ev.recur||'ninguna');
   document.getElementById('modal-ov').classList.add('open');
 }
@@ -1734,11 +1762,12 @@ function saveEv(){
   const fecha=document.getElementById('ev-f').value;
   const hora=document.getElementById('ev-h').value;
   const notas=document.getElementById('ev-n').value;
+  const alarm=document.getElementById('ev-alarm').checked;
   if(S.editEv){
     const ev=S.events.find(e=>e.id===S.editEv);
-    if(ev){ev.titulo=t;ev.fecha=fecha;ev.hora=hora;ev.cat=S.selCat;ev.notas=notas;ev.recur=S.selRecur;}
+    if(ev){ev.titulo=t;ev.fecha=fecha;ev.hora=hora;ev.cat=S.selCat;ev.notas=notas;ev.recur=S.selRecur;ev.alarm=alarm;}
   }else{
-    const base={id:uid(),titulo:t,fecha,hora,cat:S.selCat,notas,recur:S.selRecur};
+    const base={id:uid(),titulo:t,fecha,hora,cat:S.selCat,notas,recur:S.selRecur,alarm};
     S.events.push(base);
     // Generar ocurrencias futuras para recurrentes (12 ocurrencias)
     if(S.selRecur!=='ninguna'){
@@ -2970,6 +2999,162 @@ function checkVencNotifs(){
       new Notification('⏰ '+v.nombre,{body:msg+' · '+v.cat,icon:'/icon-192.png',tag:'venc-'+v.id});
     }catch(e){}
   });
+}
+
+
+// ══════════════════════════════════════════
+// WEBAUTHN — Autenticación biométrica
+// ══════════════════════════════════════════
+
+const WA_RP_NAME = 'Workspace Personal';
+const WA_RP_ID   = window.location.hostname;
+const WA_CRED_KEY = 'ws_biometric_cred';  // credentialId guardado localmente
+
+// Chequear si hay credencial registrada en este dispositivo
+function hasBiometricCred(){
+  return !!localStorage.getItem(WA_CRED_KEY);
+}
+
+// Al cargar la pantalla de auth: mostrar u ocultar botón huella
+function checkBiometricAvailable(){
+  if(hasBiometricCred() && window.PublicKeyCredential){
+    document.getElementById('biometric-wrap').style.display = 'block';
+  }
+}
+
+// LOGIN con huella — se llama al presionar el botón verde
+async function doBiometric(){
+  const credIdB64 = localStorage.getItem(WA_CRED_KEY);
+  if(!credIdB64){ toast('No hay huella registrada'); return; }
+
+  const btn = document.getElementById('biometric-btn');
+  btn.textContent = '🔐 Verificando…';
+  btn.disabled = true;
+
+  try{
+    const credId = Uint8Array.from(atob(credIdB64), c => c.charCodeAt(0));
+    const assertion = await navigator.credentials.get({
+      publicKey:{
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rpId: WA_RP_ID,
+        allowCredentials:[{ type:'public-key', id: credId }],
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+    if(assertion){
+      // Huella OK → recuperar sesión
+      const savedToken = localStorage.getItem('ws_biometric_token');
+      const refreshToken = localStorage.getItem('ws_refresh_token');
+
+      // Primero intentar con el access_token guardado
+      if(savedToken){
+        const ui = await sbFetch('GET','/auth/v1/user',null,savedToken).catch(()=>null);
+        if(ui && ui.email){
+          setToken(savedToken);
+          sessionStorage.setItem('ws_user', JSON.stringify({email:ui.email, name:ui.user_metadata?.name||ui.email.split('@')[0]}));
+          enterApp(savedToken, ui);
+          return;
+        }
+      }
+
+      // Token expirado → renovar silenciosamente con refresh_token
+      if(refreshToken){
+        btn.textContent = '🔐 Renovando sesión…';
+        const refreshed = await sbRefreshToken(refreshToken).catch(()=>null);
+        if(refreshed && refreshed.access_token){
+          setToken(refreshed.access_token);
+          if(refreshed.refresh_token) localStorage.setItem('ws_refresh_token', refreshed.refresh_token);
+          localStorage.setItem('ws_biometric_token', refreshed.access_token);
+          const ui = await sbFetch('GET','/auth/v1/user',null,refreshed.access_token).catch(()=>null);
+          if(ui && ui.email){
+            sessionStorage.setItem('ws_user', JSON.stringify({email:ui.email, name:ui.user_metadata?.name||ui.email.split('@')[0]}));
+            enterApp(refreshed.access_token, ui);
+            return;
+          }
+        }
+      }
+
+      // Sin refresh_token o falló → pedir login manual una vez
+      showErr('login-err','Sesión vencida. Ingresá con email una vez para renovarla.');
+    }
+  }catch(e){
+    if(e.name !== 'NotAllowedError'){
+      showErr('login-err','Error de huella: '+e.message);
+    }
+  }finally{
+    btn.textContent = '🔐 Ingresar con huella';
+    btn.disabled = false;
+  }
+}
+
+// REGISTRO de huella — se llama luego del login exitoso con email
+async function ofrecerRegistrarHuella(email){
+  if(!window.PublicKeyCredential){ return; }
+  // No ofrecer si ya hay una credencial de este email
+  if(localStorage.getItem(WA_CRED_KEY) && localStorage.getItem('ws_biometric_email') === email){ return; }
+
+  // Pequeña notificación no invasiva
+  const chip = document.createElement('div');
+  chip.style.cssText = 'position:fixed;bottom:70px;right:20px;background:var(--bg2);border:1px solid var(--green-border);border-radius:var(--radius-lg);padding:14px 16px;font-family:var(--fm);font-size:11px;color:var(--txt2);z-index:1500;max-width:300px;box-shadow:var(--shadow-lg);animation:fadeUp .25s ease';
+  chip.innerHTML = `
+    <div style="color:var(--green);margin-bottom:7px;font-size:10px;text-transform:uppercase;letter-spacing:.05em">🔐 Acceso rápido</div>
+    <div style="margin-bottom:10px;line-height:1.5">¿Querés usar tu huella dactilar para entrar la próxima vez?</div>
+    <div style="display:flex;gap:7px">
+      <button id="wa-si" style="background:var(--green);color:#fff;border:none;border-radius:5px;padding:5px 13px;font-family:var(--fm);font-size:10px;cursor:pointer">Sí, activar</button>
+      <button onclick="this.closest('div[style]').remove()" style="background:transparent;border:1px solid var(--line);color:var(--txt3);border-radius:5px;padding:5px 13px;font-family:var(--fm);font-size:10px;cursor:pointer">Ahora no</button>
+    </div>`;
+  document.body.appendChild(chip);
+  document.getElementById('wa-si').onclick = async () => {
+    chip.remove();
+    await registrarHuella(email);
+  };
+  setTimeout(()=>{ if(chip.parentNode) chip.remove(); }, 15000);
+}
+
+async function registrarHuella(email){
+  try{
+    const userId = new TextEncoder().encode(email);
+    const cred = await navigator.credentials.create({
+      publicKey:{
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp:{ name: WA_RP_NAME, id: WA_RP_ID },
+        user:{ id: userId, name: email, displayName: S.userName || email },
+        pubKeyCredParams:[
+          { type:'public-key', alg:-7 },   // ES256
+          { type:'public-key', alg:-257 },  // RS256
+        ],
+        authenticatorSelection:{
+          userVerification:'required',
+          residentKey:'discouraged',
+        },
+        timeout: 60000,
+        attestation:'none',
+      }
+    });
+    if(cred){
+      // Guardar credentialId en localStorage (es solo un ID, no datos biométricos)
+      const credIdB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+      localStorage.setItem(WA_CRED_KEY, credIdB64);
+      localStorage.setItem('ws_biometric_email', email);
+      // Guardar token actual para recuperarlo con huella
+      const currentToken = getToken();
+      if(currentToken) localStorage.setItem('ws_biometric_token', currentToken);
+      toast('🔐 Huella registrada — la próxima vez entrás directo ✓');
+    }
+  }catch(e){
+    if(e.name !== 'NotAllowedError'){
+      toast('No se pudo registrar la huella: '+e.message);
+    }
+  }
+}
+
+// Guardar token en biometric storage cada vez que se hace login exitoso
+// (para que si el token se renueva, siga funcionando)
+function updateBiometricToken(token){
+  if(localStorage.getItem(WA_CRED_KEY)){
+    localStorage.setItem('ws_biometric_token', token);
+  }
 }
 
 // ═

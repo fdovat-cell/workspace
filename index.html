@@ -549,8 +549,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
           <button class="auth-btn" id="biometric-btn" onclick="doBiometric()" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-border);font-size:15px">&#x1F510; Ingresar con huella</button>
           <div class="auth-divider" style="margin:10px 0">&#x2014; o ingres&#xe1; con email &#x2014;</div>
         </div>
-        <div><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="tu@email.com" autocomplete="email"></div>
-        <div><label class="auth-label">Contraseña</label><input type="password" class="auth-input" id="login-pass" placeholder="" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div id="login-email-wrap"><label class="auth-label">Email</label><input type="email" class="auth-input" id="login-email" placeholder="tu@email.com" autocomplete="email"></div>
+        <div id="login-pass-wrap"><label class="auth-label">Contraseña</label><input type="password" class="auth-input" id="login-pass" placeholder="" autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
         <div class="auth-err" id="login-err"></div>
         <button class="auth-btn" onclick="doLogin()">Ingresar</button>
         <div class="auth-divider"></div>
@@ -3019,7 +3019,30 @@ function hasBiometricCred(){
 function checkBiometricAvailable(){
   if(hasBiometricCred() && window.PublicKeyCredential){
     document.getElementById('biometric-wrap').style.display = 'block';
+    // Ocultar formulario email/pass para que Android no ofrezca guardar contraseña
+    document.getElementById('login-email-wrap').style.display = 'none';
+    document.getElementById('login-pass-wrap').style.display = 'none';
+    document.getElementById('login-email').setAttribute('autocomplete','off');
+    document.getElementById('login-pass').setAttribute('autocomplete','off');
+    // Mostrar link para volver al formulario si el usuario quiere
+    if(!document.getElementById('show-form-link')){
+      const lnk = document.createElement('div');
+      lnk.id = 'show-form-link';
+      lnk.style.cssText = 'text-align:center;margin-top:6px';
+      lnk.innerHTML = '<button onclick="showLoginForm()" style="background:none;border:none;font-family:var(--fm);font-size:11px;color:var(--txt3);cursor:pointer">Ingresar con email y contraseña</button>';
+      document.getElementById('biometric-wrap').after(lnk);
+    }
   }
+}
+
+function showLoginForm(){
+  document.getElementById('login-email-wrap').style.display = '';
+  document.getElementById('login-pass-wrap').style.display = '';
+  document.getElementById('login-email').setAttribute('autocomplete','email');
+  document.getElementById('login-pass').setAttribute('autocomplete','current-password');
+  const lnk = document.getElementById('show-form-link');
+  if(lnk) lnk.remove();
+  document.getElementById('login-email').focus();
 }
 
 // LOGIN con huella — se llama al presionar el botón verde

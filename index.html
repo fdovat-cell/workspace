@@ -1165,7 +1165,7 @@ const SALT='WSP2025';
 // Utils — definidas primero para que estén disponibles en todo el script
 const DY=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const MO=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const dk=d=>d.toISOString().slice(0,10);
+const dk=d=>{const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const dy=String(d.getDate()).padStart(2,'0');return`${y}-${m}-${dy}`;};
 const isT=d=>dk(d)===dk(new Date());
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const CC=(c,p)=>({t:['var(--accent-dim)','var(--accent-border)','var(--accent)'],p:['var(--green-dim)','var(--green-border)','var(--green)'],v:['var(--red-dim)','var(--red-border)','var(--red)'],f:['var(--amber-dim)','var(--amber-border)','var(--amber)'],o:['var(--blue-dim)','var(--blue-border)','var(--blue)']})[c]?.[p]||['var(--blue-dim)','var(--blue-border)','var(--blue)'][p];

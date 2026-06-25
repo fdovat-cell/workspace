@@ -1667,7 +1667,7 @@ function renderDay(){
   }
   const rows=tl.querySelectorAll('.hr');if(rows[8])setTimeout(()=>rows[8].scrollIntoView({block:'start'}),50);
 }
-function mvDay(n){S.day=new Date(S.day.getTime()+n*86400000);renderDay();}
+function mvDay(n){const d=new Date(S.day);d.setDate(d.getDate()+n);S.day=d;renderDay();}
 function goToday(){S.day=new Date();renderDay();}
 function quickDelEv(id){S.events=S.events.filter(e=>e.id!==id);saveLocal();rcv();toast('Evento eliminado');}
 
@@ -1676,8 +1676,8 @@ function quickDelEv(id){S.events=S.events.filter(e=>e.id!==id);saveLocal();rcv()
 // ═
 function renderWeek(){
   const d=S.day,dow=d.getDay();
-  const mon=new Date(d.getTime()-(dow===0?6:dow-1)*86400000);
-  const days=Array.from({length:7},(_,i)=>new Date(mon.getTime()+i*86400000));
+  const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));
+  const days=Array.from({length:7},(_,i)=>{const x=new Date(mon);x.setDate(mon.getDate()+i);return x;});
   document.getElementById('whead').innerHTML='<div></div>'+days.map(d=>`<div class="wdh${isT(d)?' today':''}"><span class="wdn">${d.getDate()}</span>${DY[d.getDay()]}</div>`).join('');
   const wb=document.getElementById('wbody');wb.innerHTML='';
   for(let h=0;h<24;h++){
@@ -1709,9 +1709,9 @@ function renderMonth(){
   const first=new Date(d.getFullYear(),d.getMonth(),1);
   const last=new Date(d.getFullYear(),d.getMonth()+1,0);
   const cells=[];
-  for(let i=0;i<first.getDay();i++)cells.push({d:new Date(first.getTime()-(first.getDay()-i)*86400000),o:true});
+  for(let i=0;i<first.getDay();i++){const x=new Date(first);x.setDate(first.getDate()-(first.getDay()-i));cells.push({d:x,o:true});}
   for(let i=1;i<=last.getDate();i++)cells.push({d:new Date(d.getFullYear(),d.getMonth(),i),o:false});
-  while(cells.length<42)cells.push({d:new Date(last.getTime()+(cells.length-last.getDate()-first.getDay()+1)*86400000),o:true});
+  while(cells.length<42){const x=new Date(last);x.setDate(last.getDate()+(cells.length-last.getDate()-first.getDay()+1));cells.push({d:x,o:true});}
   cells.forEach(({d:day,o})=>{
     const cell=document.createElement('div');cell.className='mc'+(o?' om':'')+(isT(day)?' today':'');
     cell.onclick=()=>{S.day=new Date(day);swv('day',null);document.querySelectorAll('.tb').forEach((t,i)=>t.classList.toggle('active',i===0));};

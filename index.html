@@ -195,7 +195,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .mcn{font-family:var(--fm);font-size:11px;color:var(--txt3);margin-bottom:3px}
 .mc.today .mcn{color:var(--accent);font-weight:500}
 .mdots{display:flex;flex-wrap:wrap;gap:3px;margin-top:auto;padding-top:2px}
-.mdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
 /* VENCIMIENTOS */
 #venc-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:9px}
@@ -1715,20 +1715,51 @@ function renderMonth(){
   while(cells.length<42){const x=new Date(last);x.setDate(last.getDate()+(cells.length-last.getDate()-first.getDay()+1));cells.push({d:x,o:true});}
   cells.forEach(({d:day,o})=>{
     const cell=document.createElement('div');cell.className='mc'+(o?' om':'')+(isT(day)?' today':'');
-    cell.onclick=()=>{S.day=new Date(day);swv('day',null);document.querySelectorAll('.tb').forEach((t,i)=>t.classList.toggle('active',i===0));};
+    cell.onclick=()=>showDayPreview(day);
     const num=document.createElement('div');num.className='mcn';num.textContent=day.getDate();cell.appendChild(num);
     const dEvs=evDay(day);
     if(dEvs.length){
       const dots=document.createElement('div');dots.className='mdots';
       dEvs.slice(0,4).forEach(ev=>{
         const dot=document.createElement('div');dot.className='mdot';
-        dot.style.background=CC(ev.cat[0],0);dots.appendChild(dot);
+        dot.style.background=CC(ev.cat[0],2);dots.appendChild(dot);
       });
       cell.appendChild(dots);
     }
     g.appendChild(cell);
   });
 }
+function goToDay(day){S.day=new Date(day);swv('day',null);document.querySelectorAll('.tb').forEach((t,i)=>t.classList.toggle('active',i===0));}
+function showDayPreview(day){
+  let ov=document.getElementById('day-prev-ov');
+  if(!ov){
+    ov=document.createElement('div');ov.id='day-prev-ov';
+    ov.style.cssText='display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:1500;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)';
+    ov.onclick=e=>{if(e.target===ov)closeDayPreview();};
+    document.body.appendChild(ov);
+  }
+  const evs=evDay(day);
+  const DOWN=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const fecha=DOWN[day.getDay()]+' '+day.getDate()+' de '+MO[day.getMonth()];
+  const rows=evs.length?evs.map(ev=>
+    '<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line)">'+
+    '<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+CC(ev.cat[0],2)+'"></div>'+
+    '<div style="font-family:var(--fm);font-size:11px;color:var(--txt3);width:36px;flex-shrink:0">'+ev.hora+'</div>'+
+    '<div style="font-family:var(--fb);font-size:13px;color:var(--txt);flex:1;min-width:0">'+ev.titulo+'</div>'+
+    '</div>'
+  ).join(''):'<div style="font-family:var(--fb);font-size:13px;color:var(--txt3);padding:14px 0">Sin eventos</div>';
+  ov.innerHTML='<div style="background:var(--bg2);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px 20px 22px;width:100%;max-width:480px;max-height:70dvh;overflow-y:auto;box-shadow:var(--shadow-lg)">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+    '<div style="font-family:var(--fh);font-size:15px;font-weight:700;color:var(--txt);text-transform:capitalize">'+fecha+'</div>'+
+    '<button onclick="closeDayPreview()" style="background:none;border:none;color:var(--txt3);font-size:16px;cursor:pointer;padding:4px">✕</button>'+
+    '</div>'+
+    rows+
+    '<button onclick="closeDayPreview();goToDay(window._dpDay)" style="width:100%;margin-top:14px;background:var(--accent);border:none;color:#fff;border-radius:9px;padding:10px;font-family:var(--fm);font-size:12px;font-weight:500;cursor:pointer">Ver día completo</button>'+
+    '</div>';
+  window._dpDay=day;
+  ov.style.display='flex';
+}
+function closeDayPreview(){const ov=document.getElementById('day-prev-ov');if(ov)ov.style.display='none';}
 function mvMonth(n){S.month=new Date(S.month.getFullYear(),S.month.getMonth()+n,1);renderMonth();}
 
 // ═

@@ -173,22 +173,22 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .c-o{background:var(--blue-dim);border:1px solid var(--blue-border);color:var(--blue)}
 #view-week{overflow:hidden}
 .wgh{display:grid;grid-template-columns:44px repeat(7,1fr);border-bottom:1px solid var(--line);flex-shrink:0;background:var(--bg2)}
-.wdh{padding:7px 5px;text-align:center;font-size:10px;font-family:var(--fm);color:var(--txt3);border-left:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em}
+.wdh{padding:7px 5px;text-align:center;font-size:10px;font-family:var(--fm);color:var(--txt3);border-left:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em;min-width:0;overflow:hidden}
 .wdn{font-family:var(--fh);font-size:17px;font-weight:700;color:var(--txt2);display:block;line-height:1;margin-bottom:1px}
 .wdh.today .wdn{color:var(--accent)}
 .wdh.today{background:var(--accent-dim)}
 .wb{flex:1;overflow-y:auto}
 .wr{display:grid;grid-template-columns:44px repeat(7,1fr);min-height:44px;border-top:1px solid var(--line)}
 .whl{font-family:var(--fm);font-size:10px;color:var(--txt3);padding:5px 6px 0 0;text-align:right}
-.wc{border-left:1px solid var(--line);padding:2px 3px;display:flex;flex-direction:column;gap:2px}
+.wc{border-left:1px solid var(--line);padding:2px 3px;display:flex;flex-direction:column;gap:2px;min-width:0;overflow:hidden}
 .wc.today{background:var(--accent-dim)}
 .wchip{font-size:10px;padding:2px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 #view-month{padding:16px 20px;overflow-y:auto}
 .mnav{display:flex;align-items:center;gap:9px;margin-bottom:12px}
 .mttl{font-family:var(--fh);font-size:17px;font-weight:700;color:var(--txt);flex:1;text-align:center;text-transform:uppercase;letter-spacing:.03em}
 .mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line)}
-.mhc{background:var(--bg2);padding:6px;text-align:center;font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em}
-.mc{background:var(--bg);min-height:84px;padding:5px;cursor:pointer;transition:background var(--tr)}
+.mhc{background:var(--bg2);padding:6px;text-align:center;font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;min-width:0;overflow:hidden}
+.mc{background:var(--bg);min-height:84px;padding:5px;cursor:pointer;transition:background var(--tr);min-width:0;overflow:hidden}
 .mc:hover{background:var(--bg3)}
 .mc.om{opacity:.3}
 .mc.today{background:var(--accent-dim)}

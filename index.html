@@ -188,13 +188,13 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);height:100dvh;o
 .mttl{font-family:var(--fh);font-size:17px;font-weight:700;color:var(--txt);flex:1;text-align:center;text-transform:uppercase;letter-spacing:.03em}
 .mgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line)}
 .mhc{background:var(--bg2);padding:6px;text-align:center;font-family:var(--fm);font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;min-width:0;overflow:hidden}
-.mc{background:var(--bg);min-height:84px;padding:5px;cursor:pointer;transition:background var(--tr);min-width:0;overflow:hidden}
+.mc{background:var(--bg);min-height:104px;padding:5px;cursor:pointer;transition:background var(--tr);min-width:0;overflow:hidden}
 .mc:hover{background:var(--bg3)}
 .mc.om{opacity:.3}
 .mc.today{background:var(--accent-dim)}
 .mcn{font-family:var(--fm);font-size:11px;color:var(--txt3);margin-bottom:3px}
 .mc.today .mcn{color:var(--accent);font-weight:500}
-.mev{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mev{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:1px;overflow:hidden;line-height:1.3;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 
 /* VENCIMIENTOS */
 #venc-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:9px}
